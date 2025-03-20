@@ -13,15 +13,18 @@ type TextSpinnerDefinition struct {
 	specs.TextSpinnerDefinition[*TextSpinnerDefinition]
 }
 
-func NewTextSpinner() *TextSpinnerDefinition {
+func NewTextSpinner(set ...int) *TextSpinnerDefinition {
 	d := &TextSpinnerDefinition{}
 	d.TextSpinnerDefinition = specs.NewTextSpinnerDefinition(specs.NewSelf(d))
+	if len(set) > 0 {
+		d.SetPredefined(set[0])
+	}
 	return d
 }
 
 func (d *TextSpinnerDefinition) Dup() *TextSpinnerDefinition {
 	dup := &TextSpinnerDefinition{}
-	dup.TextSpinnerDefinition = d.TextSpinnerDefinition.Dup(dup)
+	dup.TextSpinnerDefinition = d.TextSpinnerDefinition.Dup(specs.NewSelf(dup))
 	return dup
 }
 

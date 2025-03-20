@@ -7,6 +7,13 @@ import (
 	"github.com/mandelsoft/ttyprogress/units"
 )
 
+// Message provide a DecoratorFunc for a simple text message.
+func Message(m string) DecoratorFunc {
+	return func(element ElementInterface) string {
+		return m
+	}
+}
+
 // PercentString returns the formatted string representation of the percent value.
 func PercentString(p float64) string {
 	return fmt.Sprintf("%3.f%%", p)

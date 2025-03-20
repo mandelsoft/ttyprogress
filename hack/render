@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ "$1" == '-r' ]; then
+  shift
+  echo record
+  hack/record "$1"
+fi
+N=/tmp/merge.yml
+OPT=
+if [ -f examples/progress/$1/config.yaml ]; then
+  OPT=examples/progress/$1/config.yaml
+fi
+echo merge $OPT to "$N"
+spiff merge --json hack/data/template.yaml local/$1.yml $OPT> "$N"
+echo render
+terminalizer render "$N" -o "examples/progress/$1/demo.gif"
+#rm "$N"

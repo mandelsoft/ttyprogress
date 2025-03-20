@@ -16,7 +16,7 @@ func Step(n string) ttyprogress.NestedStep {
 }
 
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
 
 	bar, _ := ttyprogress.NewNestedSteps(
 		Step("downloading"),

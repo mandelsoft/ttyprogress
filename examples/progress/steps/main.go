@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
 
 	bar, _ := ttyprogress.NewSteps("downloading", "unpacking", "installing", "verifying").
 		PrependStep().

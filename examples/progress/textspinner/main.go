@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
 
 	for s := 0; s < 3; s++ {
 		bar, _ := ttyprogress.NewTextSpinner().

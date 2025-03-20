@@ -1,0 +1,4 @@
+#!/bin/bash
+
+terminalizer record local/$1 -k -d "go run ./examples/progress/$1"
+

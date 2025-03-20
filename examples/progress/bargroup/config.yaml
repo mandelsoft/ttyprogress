@@ -1,0 +1,4 @@
+config:
+  rows: 12
+  frameBox:
+    title: Group Indicator with Bar Progress

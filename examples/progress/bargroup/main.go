@@ -25,28 +25,10 @@ func spinner(g ttyprogress.Group) {
 	}
 }
 
-func text(g ttyprogress.Group) {
-
-	text, _ := ttyprogress.NewTextSpinner().
-		SetPredefined(70).
-		SetView(3).
-		SetSpeed(1).
-		SetFollowUpGap("> ").
-		PrependFunc(ttyprogress.Message(fmt.Sprintf("working on task %d...", 3))).
-		AppendElapsed().
-		Add(g)
-
-	go func() {
-		for i := 0; i <= 20; i++ {
-			fmt.Fprintf(text, "doing step %d of task %d\n", i, 3)
-			time.Sleep(time.Millisecond * 100 * time.Duration(1+rand.Int()%20))
-		}
-		text.Close()
-	}()
-}
-
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
+
+	// use progress bar to indicate group progress.
 	s := ttyprogress.NewBar().
 		SetPredefined(1).
 		SetWidth(30).

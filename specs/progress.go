@@ -47,7 +47,7 @@ func (d *ProgressDefinition[T]) GetTick() bool {
 	return d.tick
 }
 
-// SetColor appends the time elapsed the be progress bar
+// SetColor appends the time elapsed the be progress indicator
 func (d *ProgressDefinition[T]) SetColor(col *color.Color) T {
 	d.color = col
 	return d.Self()
@@ -57,7 +57,7 @@ func (d *ProgressDefinition[T]) GetColor() *color.Color {
 	return d.color
 }
 
-// AppendFunc2 runs the decorator function and renders the output on the right of the progress bar
+// AppendFunc2 runs the decorator function and renders the output on the right of the progress indicator
 func (d *ProgressDefinition[T]) AppendFunc2(f DecoratorFunc, offset ...int) {
 	if len(offset) == 0 {
 		d.appendFuncs = append(d.appendFuncs, f)
@@ -66,7 +66,7 @@ func (d *ProgressDefinition[T]) AppendFunc2(f DecoratorFunc, offset ...int) {
 	}
 }
 
-// AppendFunc runs the decorator function and renders the output on the right of the progress bar
+// AppendFunc runs the decorator function and renders the output on the right of the progress indicator
 func (d *ProgressDefinition[T]) AppendFunc(f DecoratorFunc, offset ...int) T {
 	d.AppendFunc2(f, offset...)
 	return d.Self()
@@ -76,7 +76,7 @@ func (d *ProgressDefinition[T]) GetAppendFuncs() []DecoratorFunc {
 	return slices.Clone(d.appendFuncs)
 }
 
-// PrependFunc2 runs decorator function and render the output left the progress bar
+// PrependFunc2 runs decorator function and render the output left the progress indicator
 func (d *ProgressDefinition[T]) PrependFunc2(f DecoratorFunc, offset ...int) {
 	if len(offset) == 0 {
 		d.prependFuncs = append(d.prependFuncs, f)
@@ -85,7 +85,7 @@ func (d *ProgressDefinition[T]) PrependFunc2(f DecoratorFunc, offset ...int) {
 	}
 }
 
-// PrependFunc runs decorator function and render the output left the progress bar
+// PrependFunc runs decorator function and render the output left the progress indicator
 func (d *ProgressDefinition[T]) PrependFunc(f DecoratorFunc, offset ...int) T {
 	d.PrependFunc2(f, offset...)
 	return d.Self()
@@ -95,7 +95,7 @@ func (d *ProgressDefinition[T]) GetPrependFuncs() []DecoratorFunc {
 	return slices.Clone(d.prependFuncs)
 }
 
-// AppendElapsed appends the time elapsed the be progress bar
+// AppendElapsed appends the time elapsed to the progress indicator
 func (d *ProgressDefinition[T]) AppendElapsed(offset ...int) T {
 	d.tick = true
 	return d.AppendFunc(func(e ElementInterface) string {
@@ -103,12 +103,22 @@ func (d *ProgressDefinition[T]) AppendElapsed(offset ...int) T {
 	}, offset...)
 }
 
-// PrependElapsed prepends the time elapsed to the beginning of the bar
+// PrependElapsed prepends the time elapsed to the beginning of the indicator
 func (d *ProgressDefinition[T]) PrependElapsed(offset ...int) T {
 	d.tick = true
 	return d.PrependFunc(func(e ElementInterface) string {
 		return stringutils.PadLeft(e.TimeElapsedString(), 5, ' ')
 	}, offset...)
+}
+
+// AppendMessage appends text to the progress indicator
+func (d *ProgressDefinition[T]) AppendMessage(m string, offset ...int) T {
+	return d.AppendFunc(Message(m), offset...)
+}
+
+// PrependMessage prepends text to the beginning of the indicator
+func (d *ProgressDefinition[T]) PrependMessage(m string, offset ...int) T {
+	return d.PrependFunc(Message(m), offset...)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -139,6 +149,12 @@ type ProgressSpecification[T any] interface {
 	// PrependElapsed appends the elapsed time of the action
 	// or the duration of the action if the element is already closed.
 	PrependElapsed(offset ...int) T
+
+	// AppendMessage appends text to the progress indicator.
+	AppendMessage(m string, offset ...int) T
+
+	// PrependMessage prepends text to the beginning of the indicator
+	PrependMessage(m string, offset ...int) T
 }
 
 // ProgressConfiguration provides access to the generic Progress configuration

@@ -36,7 +36,7 @@ func NewNestedSteps(steps ...specs.NestedStep) *NestedStepsDefinition {
 
 func (d *NestedStepsDefinition) Dup() *NestedStepsDefinition {
 	dup := &NestedStepsDefinition{}
-	dup.NestedStepsDefinition = d.NestedStepsDefinition.Dup(dup)
+	dup.NestedStepsDefinition = d.NestedStepsDefinition.Dup(specs.NewSelf(dup))
 	return dup
 }
 

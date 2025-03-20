@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
 
 	for b := 0; b < 3; b++ {
 		total := 100 + rand.Int()%100

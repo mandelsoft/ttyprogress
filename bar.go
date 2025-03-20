@@ -35,15 +35,18 @@ type BarDefinition struct {
 
 var _ specs.GroupProgressElementDefinition[Bar] = (*BarDefinition)(nil)
 
-func NewBar() *BarDefinition {
+func NewBar(set ...int) *BarDefinition {
 	d := &BarDefinition{}
 	d.BarDefinition = specs.NewBarDefinition(specs.NewSelf(d))
+	if len(set) > 0 {
+		d.SetPredefined(set[0])
+	}
 	return d
 }
 
 func (d *BarDefinition) Dup() *BarDefinition {
 	dup := &BarDefinition{}
-	dup.BarDefinition = d.BarDefinition.Dup(dup)
+	dup.BarDefinition = d.BarDefinition.Dup(specs.NewSelf(dup))
 	return dup
 }
 

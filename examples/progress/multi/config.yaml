@@ -1,0 +1,5 @@
+config:
+  rows: 8
+  frameBox:
+    title: Multiple Progress Bar Indicators
+  command: go run ./examples/progress/multi

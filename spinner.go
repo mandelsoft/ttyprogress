@@ -15,9 +15,12 @@ type SpinnerDefinition struct {
 	specs.SpinnerDefinition[*SpinnerDefinition]
 }
 
-func NewSpinner() *SpinnerDefinition {
+func NewSpinner(set ...int) *SpinnerDefinition {
 	d := &SpinnerDefinition{}
 	d.SpinnerDefinition = specs.NewSpinnerDefinition(specs.NewSelf(d))
+	if len(set) > 0 {
+		d.SetPredefined(set[0])
+	}
 	return d
 }
 
@@ -27,7 +30,7 @@ func (d *SpinnerDefinition) GetGroupNotifier() specs.GroupNotifier[Spinner] {
 
 func (d *SpinnerDefinition) Dup() *SpinnerDefinition {
 	dup := &SpinnerDefinition{}
-	dup.SpinnerDefinition = d.SpinnerDefinition.Dup(dup)
+	dup.SpinnerDefinition = d.SpinnerDefinition.Dup(specs.NewSelf(dup))
 	return dup
 }
 

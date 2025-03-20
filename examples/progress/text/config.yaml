@@ -1,0 +1,4 @@
+config:
+  rows: 15
+  frameBox:
+    title: Visualize Text Output

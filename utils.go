@@ -67,7 +67,7 @@ func ReserveTerminalSize(r uint) uint {
 // SimpleProgress creates and displays a single progress element according
 // to the given specification.
 func SimpleProgress[T Element](w io.Writer, e ElementDefinition[T]) T {
-	p := New(w)
+	p := For(w)
 	b, _ := e.Add(p)
 	p.Close()
 	return b

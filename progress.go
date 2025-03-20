@@ -52,14 +52,14 @@ type _progress struct {
 
 var _ Container = (*_progress)(nil)
 
-// New creates a new Progress, which manages a terminal line range
+// For creates a new Progress, which manages a terminal line range
 // used to indicate progress of some actions.
 // This line range is always at the end of the given
 // writer, which must refer to a terminal device.
 // Progress indicators are added by explicitly calling
 // the appropriate constructors. They take the Progress
 // they should be attached to as first argument.
-func New(opt ...io.Writer) Progress {
+func For(opt ...io.Writer) Progress {
 	p := &_progress{
 		blocks: blocks2.New(opt...),
 		ticker: time.NewTicker(time.Millisecond * 100),

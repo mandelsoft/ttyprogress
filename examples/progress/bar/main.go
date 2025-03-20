@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
 
 	bar, _ := ttyprogress.NewBar().
 		SetPredefined(10).
 		SetTotal(500).
 		SetWidth(ttyprogress.PercentTerminalSize(30)).
-		PrependFunc(ttyprogress.Message("Downloading...")).
+		PrependMessage("Downloading...").
 		PrependElapsed().AppendCompleted().
 		AppendFunc(ttyprogress.Amount(units.Bytes(1024))).
 		Add(p)

@@ -29,7 +29,7 @@ func NewText() *TextDefinition {
 
 func (d *TextDefinition) Dup() *TextDefinition {
 	dup := &TextDefinition{}
-	dup.TextDefinition = d.TextDefinition.Dup(dup)
+	dup.TextDefinition = d.TextDefinition.Dup(specs.NewSelf(dup))
 	return dup
 }
 

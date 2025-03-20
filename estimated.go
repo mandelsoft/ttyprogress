@@ -25,7 +25,7 @@ func NewEstimated(total time.Duration) *EstimatedDefinition {
 
 func (d *EstimatedDefinition) Dup() *EstimatedDefinition {
 	dup := &EstimatedDefinition{}
-	dup.EstimatedDefinition = d.EstimatedDefinition.Dup(dup)
+	dup.EstimatedDefinition = d.EstimatedDefinition.Dup(specs.NewSelf(dup))
 	return dup
 }
 

@@ -1,0 +1,4 @@
+config:
+  rows: 24
+  frameBox:
+    title: Complex Progress Indicator Orchestration

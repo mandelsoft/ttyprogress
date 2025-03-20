@@ -1,0 +1,4 @@
+config:
+  rows: 5
+  frameBox:
+    title: Progress Bar for Sequence of Steps

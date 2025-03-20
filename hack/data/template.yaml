@@ -1,0 +1,18 @@
+  
+config:
+
+records:
+    - content: "\r$ "
+      delay: 2
+    - content: "\r$ "
+      delay: 2
+    - <<: (( sum[split("",config.command)|[]|s,c|-> s { $delay=length(s) == 0 ? 1000 :100, $content=c}] ))
+    - content: "\r\n"
+      delay: 100
+    - <<: (( merge ))
+    - content: "$ \r\n"
+      delay: 500
+    - content: "\e[1A$ "
+      delay: 2
+    - content: "\r"
+      delay: 1900

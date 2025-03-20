@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
 
 	text, _ := ttyprogress.NewText().
 		SetTitleLine("some output").

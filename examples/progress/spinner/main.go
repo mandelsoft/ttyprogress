@@ -11,21 +11,20 @@ import (
 )
 
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
 
-	bars := []int{1000, 1004, 1003, 1002}
+	bars := []int{1000, 1002, 1003}
 	cols := []*color.Color{
-		color.New(color.FgHiYellow, color.Bold),
+		color.New(color.FgHiGreen, color.Underline),
 		color.New(color.FgCyan, color.Italic),
-		color.New(color.BgGreen, color.Underline),
-		color.New(color.FgGreen),
+		color.New(color.BgCyan, color.Bold),
 	}
 	for i, b := range bars {
 		bar, _ := ttyprogress.NewSpinner().
 			SetPredefined(b).
 			SetSpeed(1).
 			SetColor(cols[i]).
-			PrependFunc(ttyprogress.Message(fmt.Sprintf("very long line working on %d ...", i+1))).
+			PrependFunc(ttyprogress.Message(fmt.Sprintf("working on task %d ...", i+1))).
 			AppendElapsed().Add(p)
 		bar.Start()
 		go func() {

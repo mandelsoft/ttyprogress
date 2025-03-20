@@ -55,7 +55,7 @@ func grouped(p ttyprogress.Container, lvl int) {
 }
 
 func main() {
-	p := ttyprogress.New(os.Stdout)
+	p := ttyprogress.For(os.Stdout)
 	grouped(p, 2)
 	p.Close()
 	p.Wait(nil)

@@ -1,0 +1,4 @@
+config:
+  rows: 8
+  frameBox:
+    title: Progress Bar Indicator based on Estimated Total Time

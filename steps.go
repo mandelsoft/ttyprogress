@@ -23,7 +23,7 @@ func NewSteps(steps ...string) *StepsDefinition {
 
 func (d *StepsDefinition) Dup() *StepsDefinition {
 	dup := &StepsDefinition{}
-	dup.StepsDefinition = d.StepsDefinition.Dup(dup)
+	dup.StepsDefinition = d.StepsDefinition.Dup(specs.NewSelf(dup))
 	return dup
 }
 
