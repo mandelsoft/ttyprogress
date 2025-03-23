@@ -11,6 +11,7 @@ import (
 
 	"github.com/mandelsoft/goutils/atomic"
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttycolors/ansi"
 )
 
@@ -34,6 +35,8 @@ type FdWriter interface {
 type Block struct {
 	blocks      atomic.Value[*Blocks]
 	titleline   string
+	titleFormat ttycolors.Format
+	viewFormat  ttycolors.Format
 	view        int
 	payload     any
 	next        *Block
@@ -91,6 +94,20 @@ func (w *Block) UIBlocks() *Blocks {
 func (w *Block) RegisterCloser(f func()) {
 	defer w.lock()()
 	w.closer = append(w.closer, f)
+}
+
+func (w *Block) SetTitleFormat(f ttycolors.Format) *Block {
+	defer w.lock()()
+
+	w.titleFormat = f
+	return w
+}
+
+func (w *Block) SetViewFormat(f ttycolors.Format) *Block {
+	defer w.lock()()
+
+	w.viewFormat = f
+	return w
 }
 
 func (w *Block) SetTitleLine(s string) *Block {
@@ -263,6 +280,20 @@ type lineinfo struct {
 	implicit int
 }
 
+func (w *Block) _formatTitle(v string) string {
+	if w.titleFormat == nil {
+		return v
+	}
+	return w.titleFormat.String(v).String()
+}
+
+func (w *Block) _formatView(v []byte) []byte {
+	if w.viewFormat == nil {
+		return v
+	}
+	return []byte(w.viewFormat.String(string(v)).String())
+}
+
 func (w *Block) emit(final bool) (int, error) {
 	blocks := w.blocks.Load()
 
@@ -271,10 +302,10 @@ func (w *Block) emit(final bool) (int, error) {
 	newline := false
 	data := w.buf.Bytes()
 	if w.closed && w.final != nil {
-		data = w.final
+		data = []byte(w._formatTitle(string(w.final)))
 	} else {
 		if w.titleline != "" {
-			blocks.out.Write([]byte(w.gap + w.titleline + "\n"))
+			blocks.out.Write([]byte(w.gap + w._formatTitle(w.titleline) + "\n"))
 			titleline = 1
 		}
 	}
@@ -329,7 +360,7 @@ func (w *Block) emit(final bool) (int, error) {
 
 	var err error
 	if final || lines <= w.view {
-		_, err = blocks.out.Write(data)
+		_, err = blocks.out.Write(w._formatView(data))
 		eff := lines + implicit + titleline
 		// fmt.Fprintf(os.Stderr, "data: %s\n", string(data))
 		// fmt.Fprintf(os.Stderr, "eff %d, lines %d, implicit %d\n", eff, lines, implicit)
@@ -339,7 +370,7 @@ func (w *Block) emit(final bool) (int, error) {
 		index := (lines) % w.view
 		start := linestart[index].start
 		view := data[start:]
-		_, err = blocks.out.Write(view)
+		_, err = blocks.out.Write(w._formatView(view))
 		eff := w.view + implicit - linestart[index].implicit + titleline
 		// fmt.Fprintf(os.Stderr, "data: %s\n", string(view))
 		// fmt.Fprintf(os.Stderr, "eff %d, lines %d, implicit %d\n", eff, lines, implicit)

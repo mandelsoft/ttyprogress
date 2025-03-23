@@ -24,6 +24,8 @@ func ElementSelf[I ElementInterface, P ElementProtected[I]](p P) Self[I, P] {
 }
 
 type (
+	TitleFormatProvider = specs.TitleFormatProvider
+	ViewFormatProvider  = specs.ViewFormatProvider
 	TitleLineProvider   = specs.TitleLineProvider
 	GapProvider         = specs.GapProvider
 	FollowupGapProvider = specs.FollowupGapProvider
@@ -67,6 +69,12 @@ func NewElemBase[I ElementInterface, P ElementProtected[I]](self Self[I, P], p C
 	}
 	if t, ok := c.(FollowupGapProvider); ok && t.GetFollowUpGap() != "" {
 		b.SetFollowUpGap(pgap + t.GetFollowUpGap())
+	}
+	if t, ok := c.(TitleFormatProvider); ok && t.GetTitleFormat() != nil {
+		b.SetTitleFormat(t.GetTitleFormat())
+	}
+	if t, ok := c.(ViewFormatProvider); ok && t.GetViewFormat() != nil {
+		b.SetViewFormat(t.GetViewFormat())
 	}
 
 	if err := p.AddBlock(b); err != nil {

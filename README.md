@@ -363,9 +363,10 @@ Elements of the main progress line can be colorized separately.
 This example can be found in [examples/progress/colors/main.go](examples/progress/group/main.go).
 
 Be careful using colors in text views. This only works, if a line 
-contains a complete output format ANSI sequences.
-
-
+contains a complete output format ANSI sequences. Text based indicators
+support the `SetViewFormat` method to configure the output format for
+the text view to set the format for the complete text independently of the
+`Write` operations.
 
 
 ## Acknowledgment of Prior Work

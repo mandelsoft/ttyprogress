@@ -1,6 +1,7 @@
 package specs
 
 import (
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/types"
 )
 
@@ -60,6 +61,18 @@ type GapProvider interface {
 // enriching the element configuration.
 type FollowupGapProvider interface {
 	GetFollowUpGap() string
+}
+
+// TitleFormatProvider is the optional interface to provide a
+// title format.
+type TitleFormatProvider interface {
+	GetTitleFormat() ttycolors.Format
+}
+
+// ViewFormatProvider is the optional interface to provide a
+// view format.
+type ViewFormatProvider interface {
+	GetViewFormat() ttycolors.Format
 }
 
 type ElementSpecification[T any] interface {

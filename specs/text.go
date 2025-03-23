@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/ttycolors"
 )
 
 type TextInterface interface {
@@ -17,6 +18,8 @@ type TextDefinition[T any] struct {
 
 	auto        bool
 	titleline   string
+	titleFormat ttycolors.Format
+	viewFormat  ttycolors.Format
 	gap         string
 	followupgap string
 }
@@ -47,6 +50,24 @@ func (d *TextDefinition[T]) SetView(v int) T {
 
 func (d *TextDefinition[T]) GetView() int {
 	return d.view
+}
+
+func (d *TextDefinition[T]) SetViewFormat(f ...ttycolors.FormatProvider) T {
+	d.viewFormat = ttycolors.New(f...)
+	return d.Self()
+}
+
+func (d *TextDefinition[T]) GetViewFormat() ttycolors.Format {
+	return d.viewFormat
+}
+
+func (d *TextDefinition[T]) SetTitleFormat(f ...ttycolors.FormatProvider) T {
+	d.titleFormat = ttycolors.New(f...)
+	return d.Self()
+}
+
+func (d *TextDefinition[T]) GetTitleFormat() ttycolors.Format {
+	return d.titleFormat
 }
 
 func (d *TextDefinition[T]) GetAuto() bool {
@@ -95,6 +116,8 @@ type TextSpecification[T any] interface {
 	// It could be used together with SetTitleLine.
 	SetFollowUpGap(v string) T
 	SetTitleLine(v string) T
+	SetViewFormat(f ...ttycolors.FormatProvider) T
+	SetTitleFormat(f ...ttycolors.FormatProvider) T
 	SetAuto(b ...bool) T
 	SetView(int) T
 }
@@ -104,6 +127,8 @@ type TextConfiguration interface {
 	TitleLineProvider
 	GapProvider
 	FollowupGapProvider
+	ViewFormatProvider
+	TitleFormatProvider
 	GetView() int
 	GetAuto() bool
 }

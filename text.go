@@ -1,6 +1,7 @@
 package ttyprogress
 
 import (
+	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -21,9 +22,13 @@ type TextDefinition struct {
 	specs.TextDefinition[*TextDefinition]
 }
 
-func NewText() *TextDefinition {
+func NewText(v ...int) *TextDefinition {
 	d := &TextDefinition{}
 	d.TextDefinition = specs.NewTextDefinition(specs.NewSelf(d))
+	lines := general.Optional(v...)
+	if lines > 0 {
+		d.SetView(lines)
+	}
 	return d
 }
 

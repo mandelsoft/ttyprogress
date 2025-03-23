@@ -1,5 +1,9 @@
 package specs
 
+import (
+	"github.com/mandelsoft/ttycolors"
+)
+
 type TextSpinnerInterface interface {
 	SpinnerInterface
 	TextInterface
@@ -8,8 +12,9 @@ type TextSpinnerInterface interface {
 type TextSpinnerDefinition[T any] struct {
 	SpinnerDefinition[T]
 
-	view int
-	gap  string
+	view       int
+	viewFormat ttycolors.Format
+	gap        string
 }
 
 var (
@@ -40,6 +45,15 @@ func (d *TextSpinnerDefinition[T]) GetView() int {
 	return d.view
 }
 
+func (d *TextSpinnerDefinition[T]) SetViewFormat(f ...ttycolors.FormatProvider) T {
+	d.viewFormat = ttycolors.New(f...)
+	return d.Self()
+}
+
+func (d *TextSpinnerDefinition[T]) GetViewFormat() ttycolors.Format {
+	return d.viewFormat
+}
+
 func (d *TextSpinnerDefinition[T]) SetFollowUpGap(gap string) T {
 	d.gap = gap
 	return d.Self()
@@ -55,10 +69,12 @@ type TextSpinnerSpecification[T any] interface {
 	SpinnerSpecification[T]
 	SetView(view int) T
 	SetFollowUpGap(gap string) T
+	SetViewFormat(f ...ttycolors.FormatProvider) T
 }
 
 type TextSpinnerConfiguration interface {
 	SpinnerConfiguration
 	FollowupGapProvider
+	ViewFormatProvider
 	GetView() int
 }
