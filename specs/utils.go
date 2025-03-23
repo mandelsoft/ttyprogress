@@ -9,7 +9,7 @@ import (
 
 // Message provide a DecoratorFunc for a simple text message.
 func Message(m string) DecoratorFunc {
-	return func(element ElementInterface) string {
+	return func(element ElementInterface) any {
 		return m
 	}
 }

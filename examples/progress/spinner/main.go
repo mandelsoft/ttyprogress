@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/fatih/color"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress"
 )
 
@@ -14,10 +14,10 @@ func main() {
 	p := ttyprogress.For(os.Stdout)
 
 	bars := []int{1000, 1002, 1003}
-	cols := []*color.Color{
-		color.New(color.FgHiGreen, color.Underline),
-		color.New(color.FgCyan, color.Italic),
-		color.New(color.BgCyan, color.Bold),
+	cols := []ttycolors.Format{
+		ttycolors.New(ttycolors.FmtBrightGreen, ttycolors.FmtUnderline),
+		ttycolors.New(ttycolors.FmtCyan, ttycolors.FmtItalic),
+		ttycolors.New(ttycolors.FmtBgCyan, ttycolors.FmtBold),
 	}
 	for i, b := range bars {
 		bar, _ := ttyprogress.NewSpinner().

@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/blocks"
 	"github.com/mandelsoft/ttyprogress/types"
 	"github.com/mandelsoft/ttyprogress/units"
@@ -12,15 +13,15 @@ import (
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func Message(m string) DecoratorFunc {
-	return func(element Element) string {
-		return m
+func Message(m ...any) DecoratorFunc {
+	return func(element Element) any {
+		return ttycolors.Sequence(m...)
 	}
 }
 
-func Amount(unit ...units.Unit) func(Element) string {
+func Amount(unit ...units.Unit) DecoratorFunc {
 	u := general.OptionalDefaulted(units.Plain, unit...)
-	return func(e Element) string {
+	return func(e Element) any {
 		if t, ok := e.(interface{ Total() int }); ok {
 			return fmt.Sprintf("(%s/%s)", u(e.(Bar).Current()), u(t.Total()))
 		}
@@ -28,9 +29,9 @@ func Amount(unit ...units.Unit) func(Element) string {
 	}
 }
 
-func Processed(unit ...units.Unit) func(Element) string {
+func Processed(unit ...units.Unit) DecoratorFunc {
 	u := general.OptionalDefaulted(units.Plain, unit...)
-	return func(e Element) string {
+	return func(e Element) any {
 		return fmt.Sprintf("(%s)", u(e.(interface{ Current() int }).Current()))
 	}
 }

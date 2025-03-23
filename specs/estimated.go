@@ -38,7 +38,7 @@ func (d *EstimatedDefinition[T]) Dup(s Self[T]) EstimatedDefinition[T] {
 
 // PrependEstimated prepends the time elapsed to the beginning of the bar
 func (d *EstimatedDefinition[T]) PrependEstimated(offset ...int) T {
-	d.PrependFunc(func(e ElementInterface) string {
+	d.PrependFunc(func(e ElementInterface) any {
 		return estimatedTime(e)
 	}, offset...)
 	return d.Self()
@@ -46,7 +46,7 @@ func (d *EstimatedDefinition[T]) PrependEstimated(offset ...int) T {
 
 // AppendEstimated appends the time elapsed to the beginning of the bar
 func (d *EstimatedDefinition[T]) AppendEstimated(offset ...int) T {
-	d.AppendFunc(func(e ElementInterface) string {
+	d.AppendFunc(func(e ElementInterface) any {
 		return estimatedTime(e)
 	}, offset...)
 	return d.Self()

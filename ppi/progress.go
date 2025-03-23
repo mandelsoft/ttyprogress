@@ -1,11 +1,10 @@
 package ppi
 
 import (
-	"bytes"
 	"slices"
 
-	"github.com/fatih/color"
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
 
@@ -31,15 +30,17 @@ func ProgressSelf[I ProgressInterface](impl ProgressProtected[I]) Self[I, Progre
 type ProgressBase[T ProgressInterface] struct {
 	ElemBase[T, ProgressProtected[T]]
 
-	color        *color.Color
-	appendFuncs  []DecoratorFunc
-	prependFuncs []DecoratorFunc
-	tick         bool
+	format         ttycolors.Format
+	progressFormat ttycolors.Format
+	appendFuncs    []DecoratorFunc
+	prependFuncs   []DecoratorFunc
+	tick           bool
 }
 
 func NewProgressBase[T ProgressInterface](self Self[T, ProgressProtected[T]], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], error) {
 	e := &ProgressBase[T]{tick: general.Optional(tick...)}
-	e.color = c.GetColor()
+	e.format = c.GetColor()
+	e.progressFormat = c.GetProgressColor()
 	e.prependFuncs = slices.Clone(c.GetPrependFuncs())
 	e.appendFuncs = slices.Clone(c.GetAppendFuncs())
 
@@ -76,15 +77,15 @@ func (b *ProgressBase[T]) Line() (string, bool) {
 	b.Lock.RLock()
 	defer b.Lock.RUnlock()
 
-	var buf bytes.Buffer
+	seq := make([]any, 0, 30)
 	sep := false
 
 	// render prepend functions to the left of the bar
 	for _, f := range b.prependFuncs {
 		if sep {
-			buf.WriteByte(' ')
+			seq = append(seq, " ")
 		}
-		buf.Write([]byte(f(b.self.Self())))
+		seq = append(seq, f(b.self.Self()))
 		sep = true
 	}
 
@@ -92,25 +93,29 @@ func (b *ProgressBase[T]) Line() (string, bool) {
 	// render main function
 	if len(data) > 0 {
 		if sep {
-			buf.WriteByte(' ')
+			seq = append(seq, " ")
 		}
-		buf.Write([]byte(data))
+		if b.progressFormat != nil {
+			seq = append(seq, b.progressFormat.String(string(data)))
+		} else {
+			seq = append(seq, string(data))
+		}
 		sep = true
 	}
 
 	// render append functions to the right of the bar
 	for _, f := range b.appendFuncs {
 		if sep {
-			buf.WriteByte(' ')
+			seq = append(seq, " ")
 		}
-		buf.Write([]byte(f(b.self.Self())))
+		seq = append(seq, f(b.self.Self()))
 		sep = true
 	}
 
-	if b.color != nil {
-		return b.color.Sprint(buf.String()), done
+	if b.format != nil {
+		return b.format.String(seq...).String(), done
 	}
-	return buf.String(), done
+	return ttycolors.Sequence(seq...).String(), done
 }
 
 func Update[T ProgressInterface](b *ProgressBase[T]) bool {

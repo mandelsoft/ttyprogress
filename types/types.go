@@ -5,11 +5,17 @@ import (
 	"io"
 	"time"
 
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/blocks"
 )
 
+type String ttycolors.String
+
 // DecoratorFunc is a function that can be prepended and appended to the progress bar
-type DecoratorFunc func(b Element) string
+// The returned type may be a string or a ttycolors.String. All other types
+// are converted to a string value by calling the method String() or using the Go native
+// conversion (print format %v).
+type DecoratorFunc func(b Element) any
 
 type Container interface {
 	AddBlock(b *blocks.Block) error

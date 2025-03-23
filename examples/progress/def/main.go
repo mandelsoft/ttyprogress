@@ -9,7 +9,7 @@ import (
 	"github.com/mandelsoft/ttyprogress"
 )
 
-var BarElapsed = ttyprogress.TypeFor(NewBar(5).SetWidth(50).AppendElapsed())
+var BarElapsed = ttyprogress.TypeFor(ttyprogress.NewBar(5).SetWidth(50).AppendElapsed())
 
 func run(p ttyprogress.Progress, bar *ttyprogress.BarDefinition) error {
 	n := 10 + rand.Int()%10

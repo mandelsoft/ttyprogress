@@ -11,6 +11,7 @@ import (
 
 	"github.com/mandelsoft/goutils/atomic"
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/ttycolors/ansi"
 )
 
 const DefaultView = 10
@@ -291,7 +292,7 @@ func (w *Block) emit(final bool) (int, error) {
 	// fmt.Fprintf(os.Stderr, "write [%d] %q\n", len(data), string(data))
 	for o, b := range string(data) {
 		if escapeSequence == 0 {
-			escapeSequence = ColorLength(data[o:])
+			escapeSequence = ansi.EscapeLength(data[o:])
 		}
 		if escapeSequence == 0 && b == '\n' || (blocks.overFlowHandled && col >= blocks.termWidth) {
 			if b != '\n' {

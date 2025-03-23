@@ -12,6 +12,6 @@ func New[T Dupper[T]](d T) T {
 // NewDefinition. It is preconfigured
 // according to the initial configuration and can
 // be refined, furthermore.
-func TypeFor[T Dupper[T]](d T) Dupper[T] {
+func TypeFor[T Dupper[T]](d T) T {
 	return d.Dup()
 }

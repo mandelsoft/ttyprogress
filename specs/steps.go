@@ -32,14 +32,14 @@ func (d *StepsDefinition[T]) Dup(s Self[T]) StepsDefinition[T] {
 }
 
 func (d *StepsDefinition[T]) AppendStep() T {
-	d.AppendFunc(func(e ElementInterface) string {
+	d.AppendFunc(func(e ElementInterface) any {
 		return e.(StepsInterface).GetCurrentStep()
 	})
 	return d.Self()
 }
 
 func (d *StepsDefinition[T]) PrependStep() T {
-	d.PrependFunc(func(e ElementInterface) string {
+	d.PrependFunc(func(e ElementInterface) any {
 		return e.(StepsInterface).GetCurrentStep()
 	})
 	return d.Self()

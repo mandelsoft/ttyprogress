@@ -349,6 +349,25 @@ in the example  [examples/progress/complex/main.go](examples/progress/complex/ma
   <img src="examples/progress/complex/demo.gif" alt="Complex Orchestration Demo" title="Complex Orchestration Demo" />
 </p>
 
-# Acknowledgment of Prior Work
+### Colors
+
+This library works together with the terminal color library [github.com/mandelsoft/ttycolors](https://github.com/mandelsoft/ttycolors).
+
+
+<p align="center">
+  <img src="examples/progress/colors/demo.gif" alt="Colorized Progress Bar Demo" title="Colorized Progress Bar Demo" />
+</p>
+
+Elements of the main progress line can be colorized separately.
+
+This example can be found in [examples/progress/colors/main.go](examples/progress/group/main.go).
+
+Be careful using colors in text views. This only works, if a line 
+contains a complete output format ANSI sequences.
+
+
+
+
+## Acknowledgment of Prior Work
 
 This library is inspired by libraries provided by [Greg Osuri](https://github.com/gosuri): [github.com/gosuri/uilive](https://github.com/gosuri/uilive) and [github.com/gosuri/uiprogress](https://github.com/gosuri/uiprogress) 

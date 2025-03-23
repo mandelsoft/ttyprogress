@@ -1,0 +1,7 @@
+config:
+  rows: 5
+  frameBox:
+    title: Colored Progress Bar
+  theme:
+    blue: "#0000ff"
+
