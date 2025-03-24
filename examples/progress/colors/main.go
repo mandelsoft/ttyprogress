@@ -11,8 +11,7 @@ import (
 )
 
 func main() {
-	p := ttyprogress.For(os.Stdout)
-	ttycolors.NoColors = false
+	p := ttyprogress.For(os.Stdout).EnableColors()
 
 	bar, _ := ttyprogress.NewBar().
 		SetPredefined(10).

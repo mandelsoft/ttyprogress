@@ -71,12 +71,12 @@ func newTextSpinner(p Container, c specs.TextSpinnerConfiguration) (TextSpinner,
 
 func (b *_TextSpinner) Write(data []byte) (int, error) {
 	b.Start()
-	return b.UIBlock().Write(data)
+	return b.Block().Write(data)
 }
 
 func (s *_TextSpinner) _update() bool {
 	line, _ := s.Line()
-	s.UIBlock().SetTitleLine(line)
+	s.Block().SetTitleLine(line)
 	return true
 }
 

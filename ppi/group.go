@@ -69,7 +69,7 @@ func (g *GroupBase[I, T]) AddBlock(b *blocks.Block) error {
 			n = n.Next()
 		}
 		b.SetGap(g.pgap + g.gap) // .SetFollowUpGap(g.pgap + g.followup)
-		g.blocks[0].UIBlocks().AppendBlock(b, n)
+		g.blocks[0].Blocks().AppendBlock(b, n)
 		b.RegisterCloser(func() { g.notifier.Done(g.main, b) })
 		g.notifier.Add(g.main, (b))
 	}

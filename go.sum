@@ -29,6 +29,10 @@ github.com/mandelsoft/goutils v0.0.0-20250323093506-2cf95092ca48 h1:TJ7MrrGBfHpK
 github.com/mandelsoft/goutils v0.0.0-20250323093506-2cf95092ca48/go.mod h1:UeYhFI0gRoiTcmZH7VD/Oy5dYz4O8vyOv5tsiBTEUPo=
 github.com/mandelsoft/ttycolors v0.0.0-20250323143723-71e60140b849 h1:E1TRsFIgFAcx+MPeExB8SUEnjQcNCW1tcBsaxBM4mIg=
 github.com/mandelsoft/ttycolors v0.0.0-20250323143723-71e60140b849/go.mod h1:uhWfs20MNztAWl6sB4IIV6KrWyb5B+dxfCkIblzOMMM=
+github.com/mandelsoft/ttycolors v0.0.0-20250324094934-f97f5632228d h1:AAWejNhtbPah4gHkVmgHfPZFgNJI4zlMyRLCJgEy6rM=
+github.com/mandelsoft/ttycolors v0.0.0-20250324094934-f97f5632228d/go.mod h1:uhWfs20MNztAWl6sB4IIV6KrWyb5B+dxfCkIblzOMMM=
+github.com/mandelsoft/ttycolors v0.0.0-20250324100229-5aacbb92ebda h1:mUXJwL5CTQfgIpjBkGKV3Gs3S6j6N4wU5buUZ/A5xEQ=
+github.com/mandelsoft/ttycolors v0.0.0-20250324100229-5aacbb92ebda/go.mod h1:uhWfs20MNztAWl6sB4IIV6KrWyb5B+dxfCkIblzOMMM=
 github.com/mandelsoft/vfs v0.4.3 h1:2UMrxQkMXkcHyuqSFhgFDupQ1fmqpKLZuu04DOHx1PA=
 github.com/mandelsoft/vfs v0.4.3/go.mod h1:zmbhx2ueQc96buqNXg2S88McBMm2mNFNeyGSpSebrHw=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=

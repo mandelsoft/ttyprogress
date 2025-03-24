@@ -87,7 +87,7 @@ func (w *Block) rlock() func() {
 	return b.lock.RUnlock
 }
 
-func (w *Block) UIBlocks() *Blocks {
+func (w *Block) Blocks() *Blocks {
 	return w.blocks.Load()
 }
 
@@ -284,14 +284,14 @@ func (w *Block) _formatTitle(v string) string {
 	if w.titleFormat == nil {
 		return v
 	}
-	return w.titleFormat.String(v).String()
+	return w.Blocks().GetTTYGontext().StringWith(w.titleFormat, v).String()
 }
 
 func (w *Block) _formatView(v []byte) []byte {
 	if w.viewFormat == nil {
 		return v
 	}
-	return []byte(w.viewFormat.String(string(v)).String())
+	return []byte(w.Blocks().GetTTYGontext().StringWith(w.viewFormat, v).String())
 }
 
 func (w *Block) emit(final bool) (int, error) {

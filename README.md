@@ -216,7 +216,7 @@ This example can be found in [examples/progress/text/main.go](examples/progress/
 ### Text Output with Spinner Title Line
 
 The `Text` progress indicator visualizes an output steam.
-During the progress it shows a configued number of trailing lines
+During the progress it shows a configured number of trailing lines
 by providing an `io.Writer`, like a [Text](#text-output) indicator.
 But instead an optional simple static title line a [Spinner](#spinner)
 is used.
@@ -353,6 +353,19 @@ in the example  [examples/progress/complex/main.go](examples/progress/complex/ma
 
 This library works together with the terminal color library [github.com/mandelsoft/ttycolors](https://github.com/mandelsoft/ttycolors).
 
+The `Progress` object is based on a `ttycolors.TTYContext` to control
+the output formatting  colorized in terms of [ANSI Escape Codes](http://en.wikipedia.org/wiki/ANSI_escape_code#Colors).
+By default, it is initialized by checking the writer for writing to a terminal.
+But it can be configured, explicitly, by using the `EnableColors` method.
+
+
+For example
+
+```golang
+p := ttyprogress.New(os.StdOut).EnableColors(false)
+```
+
+disables the output formatting, even if the standard output is directed to a terminal.
 
 <p align="center">
   <img src="examples/progress/colors/demo.gif" alt="Colorized Progress Bar Demo" title="Colorized Progress Bar Demo" />

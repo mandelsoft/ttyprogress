@@ -113,9 +113,9 @@ func (b *ProgressBase[T]) Line() (string, bool) {
 	}
 
 	if b.format != nil {
-		return b.format.String(seq...).String(), done
+		return b.StringWith(b.format, seq...).String(), done
 	}
-	return ttycolors.Sequence(seq...).String(), done
+	return b.String(seq...).String(), done
 }
 
 func Update[T ProgressInterface](b *ProgressBase[T]) bool {

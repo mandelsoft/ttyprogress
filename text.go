@@ -73,7 +73,7 @@ func newText(p Container, c specs.TextConfiguration) (Text, error) {
 	}
 	e.ElemBase = *b
 	if c.GetAuto() {
-		b.UIBlock().SetAuto()
+		b.Block().SetAuto()
 	}
 	return e, nil
 }
@@ -83,9 +83,9 @@ func (t *_Text) _update() bool {
 }
 
 func (t *_Text) Flush() error {
-	return t.UIBlock().Flush()
+	return t.Block().Flush()
 }
 
 func (t *_Text) Write(data []byte) (int, error) {
-	return t.UIBlock().Write(data)
+	return t.Block().Write(data)
 }

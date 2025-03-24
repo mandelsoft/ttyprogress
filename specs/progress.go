@@ -50,14 +50,14 @@ func (d *ProgressDefinition[T]) GetTick() bool {
 }
 
 // SetDecoratorFormat sets the output format for the next decorator.
-func (d *ProgressDefinition[T]) SetDecoratorFormat(col ttycolors.Format) T {
-	d.nextdecoratorFormat = col
+func (d *ProgressDefinition[T]) SetDecoratorFormat(f ...ttycolors.FormatProvider) T {
+	d.nextdecoratorFormat = ttycolors.New(f...)
 	return d.Self()
 }
 
 // SetColor sets the output format for the progress indicator line
-func (d *ProgressDefinition[T]) SetColor(col ttycolors.Format) T {
-	d.format = col
+func (d *ProgressDefinition[T]) SetColor(f ...ttycolors.FormatProvider) T {
+	d.format = ttycolors.New(f...)
 	return d.Self()
 }
 
@@ -66,8 +66,8 @@ func (d *ProgressDefinition[T]) GetColor() ttycolors.Format {
 }
 
 // SetProgressColor sets the output format for the progress indicator.
-func (d *ProgressDefinition[T]) SetProgressColor(col ttycolors.Format) T {
-	d.progressFormat = col
+func (d *ProgressDefinition[T]) SetProgressColor(f ...ttycolors.FormatProvider) T {
+	d.progressFormat = ttycolors.New(f...)
 	return d.Self()
 }
 
@@ -159,13 +159,13 @@ type ProgressSpecification[T any] interface {
 	ElementSpecification[T]
 
 	// SetColor set the color used for the progress line.
-	SetColor(col ttycolors.Format) T
+	SetColor(col ...ttycolors.FormatProvider) T
 
 	// SetProgressColor set the color used for the progress visualization.
-	SetProgressColor(col ttycolors.Format) T
+	SetProgressColor(col ...ttycolors.FormatProvider) T
 
 	// SetDecoratorFormat set the output format for the next decorator.
-	SetDecoratorFormat(col ttycolors.Format) T
+	SetDecoratorFormat(col ...ttycolors.FormatProvider) T
 
 	// AppendFunc adds a function providing some text appended
 	// to the basic progress indicator.

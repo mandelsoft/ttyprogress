@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/blocks"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -88,8 +89,15 @@ func (b *ElemBase[I, P]) SetFinal(m string) I {
 	return b.self.Self()
 }
 
-func (b *ElemBase[I, P]) UIBlock() *blocks.Block {
+func (b *ElemBase[I, P]) Block() *blocks.Block {
 	return b.block
+}
+
+func (b *ElemBase[I, P]) StringWith(f ttycolors.FormatProvider, seq ...any) ttycolors.String {
+	return b.block.Blocks().GetTTYGontext().StringWith(f, seq...)
+}
+func (b *ElemBase[I, P]) String(seq ...any) ttycolors.String {
+	return b.block.Blocks().GetTTYGontext().String(seq...)
 }
 
 func (b *ElemBase[I, P]) Start() {

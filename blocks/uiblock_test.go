@@ -10,7 +10,7 @@ import (
 	"github.com/mandelsoft/ttyprogress/blocks"
 )
 
-var _ = Describe("UIBlock Test Environment", func() {
+var _ = Describe("Blocks Test Environment", func() {
 	var blks *blocks.Blocks
 	var buf *bytes.Buffer
 

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/ttycolors"
 )
 
 // Blocks is a sequences of Block/s which represent a trailing range of
@@ -20,6 +21,7 @@ import (
 type Blocks struct {
 	lock sync.RWMutex
 
+	ctx ttycolors.TTYContext
 	// out is the writer to write to
 	out       io.Writer
 	termWidth int
@@ -44,6 +46,9 @@ func New(opt ...io.Writer) *Blocks {
 		timer: time.NewTimer(0),
 	}
 
+	if f, ok := w.out.(*os.File); ok {
+		w.ctx = ttycolors.NewContext(ttycolors.IsTerminal(f))
+	}
 	termWidth, _ := getTermSize()
 	if termWidth != 0 {
 		w.termWidth = termWidth
@@ -51,6 +56,21 @@ func New(opt ...io.Writer) *Blocks {
 	}
 	go w.listen()
 	return w
+}
+
+func (w *Blocks) EnableColors(b ...bool) {
+	w.ctx.Enable(b...)
+}
+
+func (w *Blocks) IsColorsEnabled() bool {
+	return w.ctx.IsEnabled()
+}
+
+func (w *Blocks) GetTTYGontext() ttycolors.TTYContext {
+	if w == nil {
+		return ttycolors.NewContext()
+	}
+	return w.ctx
 }
 
 func (w *Blocks) requestFlush() {
@@ -163,7 +183,7 @@ func (w *Blocks) TermWidth() int {
 
 // Close closed the line range.
 // No Blocks can be added anymore, and the
-// UIBlocls object is done, when all included Block/s
+// Blocks object is done, when all included Block/s
 // are closed.
 func (w *Blocks) Close() error {
 	w.lock.Lock()
