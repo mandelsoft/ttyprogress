@@ -83,8 +83,5 @@ func (s *_Spinner) _update() bool {
 }
 
 func (s *_Spinner) _visualize() (string, bool) {
-	if s.IsClosed() {
-		return "done", true
-	}
 	return ppi.Visualize(&s.SpinnerBase)
 }

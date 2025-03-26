@@ -10,7 +10,8 @@ Additionally, indicators can be grouped again. Those groups are
 visualized as indicators, also.
 
 The following indicators are directly supported by the library:
-- [Simple spinners](#spinner)
+- [Simple Spinners](#spinner)
+- [Scrolling Text Spinners](#scrolling-text-spinner)
 - [Progress bars](#progress-bar)
 - [Progress bars for estimated remaining time](#progress-bar-for-estimated-total-time) 
 - [Step lists](#progress-bar-for-steps)
@@ -120,6 +121,23 @@ spinner := ttyprogress.NewSpinner().
 </p>
 
 This example can be found in [examples/progress/spinner/main.go](examples/progress/spinner/main.go).
+
+### Scrolling Text Spinners
+
+A scrolling text spinner is basically a spinner.
+But it uses a scrolling text to indicate the progress.
+
+```golang
+spinner := ttyprogress.NewScrollingSpinner("doing some calculations", 10).
+		SetDone("calculations done").
+		AppendElapsed()
+```
+
+<p align="center">
+  <img src="examples/progress/scrollingspinner/demo.gif" alt="Scrolling Text Spinner Demo" title="Scrolling Text Spinner Demo" />
+</p>
+
+Scrolling text can also be used as decorator for other progress indicators using the `specs.ScrollingText(text, length)` decorator.
 
 ### Progress Bar
 

@@ -6,4 +6,8 @@ import (
 
 type DecoratorFunc = types.DecoratorFunc
 
+type DecoratorDefinition interface {
+	CreateDecorator(e ElementInterface) types.Decorator
+}
+
 type Container = types.Container

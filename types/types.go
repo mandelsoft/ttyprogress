@@ -9,6 +9,10 @@ import (
 	"github.com/mandelsoft/ttyprogress/blocks"
 )
 
+type Ticker interface {
+	Tick() bool
+}
+
 type String ttycolors.String
 
 // DecoratorFunc is a function that can be prepended and appended to the progress bar
@@ -16,6 +20,25 @@ type String ttycolors.String
 // are converted to a string value by calling the method String() or using the Go native
 // conversion (print format %v).
 type DecoratorFunc func(b Element) any
+
+func (d DecoratorFunc) CreateDecorator(b Element) Decorator {
+	return &decoratorFuncDecorator{b, d}
+}
+
+type decoratorFuncDecorator struct {
+	b Element
+	f DecoratorFunc
+}
+
+func (d *decoratorFuncDecorator) Decorate() any {
+	return d.f(d.b)
+}
+
+// Decorator provides a piece of text appended or
+// prepended to the main progress visualization.
+type Decorator interface {
+	Decorate() any
+}
 
 type Container interface {
 	AddBlock(b *blocks.Block) error

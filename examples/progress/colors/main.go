@@ -7,6 +7,7 @@ import (
 
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress"
+	"github.com/mandelsoft/ttyprogress/specs"
 	"github.com/mandelsoft/ttyprogress/units"
 )
 
@@ -20,6 +21,9 @@ func main() {
 		SetColor(ttycolors.FmtCyan).
 		SetWidth(ttyprogress.PercentTerminalSize(30)).
 		PrependMessage("Downloading...").
+		SetDecoratorFormat(ttycolors.FmtRGBColor(255, 0, 0)).
+		PrependDecorator(specs.ScrollingText("https://go.dev/dl/go1.24.0.linux-amd64.tar.gz", 20)).
+		PrependMessage("...").
 		SetDecoratorFormat(ttycolors.FmtRGBColor(255, 255, 0)).
 		PrependElapsed().
 		SetDecoratorFormat(ttycolors.FmtBold).

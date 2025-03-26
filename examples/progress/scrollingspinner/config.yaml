@@ -1,0 +1,4 @@
+config:
+  rows: 5
+  frameBox:
+    title: Scrolling Text Spinner Indicator

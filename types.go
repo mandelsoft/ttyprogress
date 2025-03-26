@@ -20,9 +20,7 @@ type ElementSpecification[T Element] interface {
 	specs.ElementSpecification[T]
 }
 
-type Ticker interface {
-	Tick() bool
-}
+type Ticker = types.Ticker
 
 type Dupper[T any] interface {
 	Dup() T

@@ -20,8 +20,8 @@ type ProgressDefinition[T any] struct {
 	format              ttycolors.Format
 	progressFormat      ttycolors.Format
 	nextdecoratorFormat ttycolors.Format
-	appendFuncs         []DecoratorFunc
-	prependFuncs        []DecoratorFunc
+	appendDefs          []DecoratorDefinition
+	prependDefs         []DecoratorDefinition
 	tick                bool
 }
 
@@ -39,8 +39,8 @@ func NewProgressDefinition[T any](self Self[T]) ProgressDefinition[T] {
 func (d *ProgressDefinition[T]) Dup(s Self[T]) ProgressDefinition[T] {
 	dup := *d
 	dup.ElementDefinition = d.ElementDefinition.Dup(s)
-	dup.appendFuncs = slices.Clone(dup.appendFuncs)
-	dup.prependFuncs = slices.Clone(dup.prependFuncs)
+	dup.appendDefs = slices.Clone(dup.appendDefs)
+	dup.prependDefs = slices.Clone(dup.prependDefs)
 	return dup
 }
 
@@ -75,25 +75,27 @@ func (d *ProgressDefinition[T]) GetProgressColor() ttycolors.Format {
 	return d.progressFormat
 }
 
-func format(fmt *ttycolors.Format, f DecoratorFunc) DecoratorFunc {
+func format(fmt *ttycolors.Format, def DecoratorDefinition) DecoratorDefinition {
 	if *fmt == nil {
-		return f
+		return def
 	}
 	eff := *fmt
 	*fmt = nil
-	return func(e ElementInterface) any {
-		return (eff).String(f(e))
+	return Formatted(def, eff)
+}
+
+func (d *ProgressDefinition[T]) add(list *[]DecoratorDefinition, def DecoratorDefinition, offset ...int) T {
+	if len(offset) == 0 {
+		*list = append(*list, format(&d.nextdecoratorFormat, def))
+	} else {
+		*list = slices.Insert(*list, offset[0], format(&d.nextdecoratorFormat, def))
 	}
+	return d.Self()
 }
 
 // AppendFunc2 runs the decorator function and renders the output on the right of the progress indicator
 func (d *ProgressDefinition[T]) AppendFunc2(f DecoratorFunc, offset ...int) {
-	f = format(&d.nextdecoratorFormat, f)
-	if len(offset) == 0 {
-		d.appendFuncs = append(d.appendFuncs, f)
-	} else {
-		d.appendFuncs = slices.Insert(d.appendFuncs, offset[0], f)
-	}
+	d.add(&d.appendDefs, f, offset...)
 }
 
 // AppendFunc runs the decorator function and renders the output on the right of the progress indicator
@@ -102,18 +104,23 @@ func (d *ProgressDefinition[T]) AppendFunc(f DecoratorFunc, offset ...int) T {
 	return d.Self()
 }
 
-func (d *ProgressDefinition[T]) GetAppendFuncs() []DecoratorFunc {
-	return slices.Clone(d.appendFuncs)
+// AppendDecorator runs the decorator and renders the output on the right of the progress indicator
+func (d *ProgressDefinition[T]) AppendDecorator(def DecoratorDefinition, offset ...int) T {
+	return d.add(&d.appendDefs, def, offset...)
+}
+
+// AppendDecorator2 runs the decorator and renders the output on the right of the progress indicator
+func (d *ProgressDefinition[T]) AppendDecorator2(def DecoratorDefinition, offset ...int) {
+	d.add(&d.appendDefs, def, offset...)
+}
+
+func (d *ProgressDefinition[T]) GetAppendDecorators() []DecoratorDefinition {
+	return slices.Clone(d.appendDefs)
 }
 
 // PrependFunc2 runs decorator function and render the output left the progress indicator
 func (d *ProgressDefinition[T]) PrependFunc2(f DecoratorFunc, offset ...int) {
-	f = format(&d.nextdecoratorFormat, f)
-	if len(offset) == 0 {
-		d.prependFuncs = append(d.prependFuncs, f)
-	} else {
-		d.prependFuncs = slices.Insert(d.prependFuncs, offset[0], f)
-	}
+	d.add(&d.prependDefs, f, offset...)
 }
 
 // PrependFunc runs decorator function and render the output left the progress indicator
@@ -122,8 +129,18 @@ func (d *ProgressDefinition[T]) PrependFunc(f DecoratorFunc, offset ...int) T {
 	return d.Self()
 }
 
-func (d *ProgressDefinition[T]) GetPrependFuncs() []DecoratorFunc {
-	return slices.Clone(d.prependFuncs)
+// PrependDefinition runs the decorator and renders the output on the right of the progress indicator
+func (d *ProgressDefinition[T]) PrependDecorator(def DecoratorDefinition, offset ...int) T {
+	return d.add(&d.prependDefs, def, offset...)
+}
+
+// PrependDefinition2 runs the decorator and renders the output on the right of the progress indicator
+func (d *ProgressDefinition[T]) PrependDecorator2(def DecoratorDefinition, offset ...int) {
+	d.add(&d.prependDefs, def, offset...)
+}
+
+func (d *ProgressDefinition[T]) GetPrependDecorators() []DecoratorDefinition {
+	return slices.Clone(d.prependDefs)
 }
 
 // AppendElapsed appends the time elapsed to the progress indicator
@@ -179,6 +196,18 @@ type ProgressSpecification[T any] interface {
 	// specify the index in the list of functions.
 	PrependFunc(f DecoratorFunc, offset ...int) T
 
+	// AppendDecorator adds a definition providing some text appended
+	// to the basic progress indicator.
+	// If there are implicit settings, the offset can be used to
+	// specify the index in the list of functions.
+	AppendDecorator(f DecoratorDefinition, offset ...int) T
+
+	// PrependDecorator adds a definition providing some text prepended
+	// to the basic progress indicator.
+	// If there are implicit settings, the offset can be used to
+	// specify the index in the list of functions.
+	PrependDecorator(f DecoratorDefinition, offset ...int) T
+
 	// AppendElapsed appends the elapsed time of the action
 	// or the duration of the action if the element is already closed.
 	AppendElapsed(offset ...int) T
@@ -201,18 +230,18 @@ type ProgressConfiguration interface {
 
 	GetColor() ttycolors.Format
 	GetProgressColor() ttycolors.Format
-	GetPrependFuncs() []DecoratorFunc
-	GetAppendFuncs() []DecoratorFunc
+	GetPrependDecorators() []DecoratorDefinition
+	GetAppendDecorators() []DecoratorDefinition
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 func TransferProgressConfig[D ProgressSpecification[T], T any](d D, c ProgressConfiguration) D {
-	for _, e := range c.GetPrependFuncs() {
-		d.PrependFunc(e)
+	for _, e := range c.GetPrependDecorators() {
+		d.PrependDecorator(e)
 	}
-	for _, e := range c.GetAppendFuncs() {
-		d.AppendFunc(e)
+	for _, e := range c.GetAppendDecorators() {
+		d.AppendDecorator(e)
 	}
 	d.SetColor(c.GetColor())
 	d.SetFinal(c.GetFinal())
@@ -221,10 +250,12 @@ func TransferProgressConfig[D ProgressSpecification[T], T any](d D, c ProgressCo
 
 type Prepender interface {
 	PrependFunc2(f DecoratorFunc, offset ...int)
+	PrependDecorator2(f DecoratorDefinition, offset ...int)
 }
 
 type Appender interface {
 	AppendFunc2(f DecoratorFunc, offset ...int)
+	AppendDecorator2(f DecoratorDefinition, offset ...int)
 }
 
 func AppendFunc[T ElementInterface](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
