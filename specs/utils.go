@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mandelsoft/goutils/stringutils"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/types"
 	"github.com/mandelsoft/ttyprogress/units"
@@ -64,22 +65,17 @@ func Formatted(def DecoratorDefinition, f ...ttycolors.FormatProvider) Decorator
 type scrollingText struct {
 	gap    string
 	length int
-	offset int
-	cnt    int
-	speed  int
 	text   string
+	offset int
+	speed  *Speed
 }
 
 var _ types.Ticker
 
 func (s *scrollingText) Tick() bool {
-	if len(s.text) > s.length {
-		s.cnt++
-		if s.cnt >= s.speed {
-			s.cnt = 0
-			s.offset = (s.offset + 1) % (len(s.text) + s.length)
-			return true
-		}
+	if s.speed.Tick() {
+		s.offset = (s.offset + 1) % (len(s.text) + s.length)
+		return true
 	}
 	return false
 }
@@ -94,16 +90,17 @@ type scrollingTextDef struct {
 	speed  int
 }
 
-func (s *scrollingTextDef) CreateDecorator(_ ElementInterface) types.Decorator {
+func (s *scrollingTextDef) CreateDecorator(e ElementInterface) types.Decorator {
 	t := s.text
-	if len(s.text) > s.length {
-		t += " "
+	if len(s.text) <= s.length {
+		return Message(stringutils.PadRight(t, s.length, ' ')).CreateDecorator(e)
 	}
+	t += " "
 	return &scrollingText{
 		gap:    fmt.Sprintf("%-*s", s.length, " "),
 		length: s.length,
 		text:   t,
-		speed:  s.speed,
+		speed:  NewSpeed(s.speed),
 	}
 }
 

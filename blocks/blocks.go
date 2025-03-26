@@ -78,7 +78,7 @@ func (w *Blocks) requestFlush() {
 		return
 	}
 	w.pending = true
-	w.timer.Reset(time.Millisecond * 250)
+	w.timer.Reset(time.Millisecond * 5)
 }
 
 func (w *Blocks) Done() <-chan struct{} {
@@ -236,9 +236,9 @@ func (w *Blocks) Flush() error {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
-	w.clearLines()
 	w.timer.Stop()
 	w.pending = false
+	w.clearLines()
 	return w.flush()
 }
 

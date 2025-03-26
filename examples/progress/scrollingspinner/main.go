@@ -17,6 +17,6 @@ func main() {
 	bar.Start()
 	p.Close()
 
-	time.Sleep(time.Millisecond * 11000)
+	time.Sleep(time.Millisecond * 15000)
 	bar.Close()
 }

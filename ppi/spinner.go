@@ -24,11 +24,10 @@ type SpinnerBase[P ProgressInterface] struct {
 	// done is the message shown after closed
 	done string
 
-	phases []string
-	speed  int
+	spped *specs.Speed
 
-	cnt   int
-	phase int
+	phases []string
+	phase  int
 }
 
 var _ SpinnerBaseInterface = (*SpinnerBase[ProgressInterface])(nil)
@@ -37,10 +36,9 @@ func NewSpinnerBase[T ProgressInterface](self Self[T, ProgressProtected[T]], p C
 	e := &SpinnerBase[T]{
 		self:    self,
 		phases:  c.GetPhases(),
-		cnt:     c.GetSpeed() - 1,
-		speed:   c.GetSpeed(),
 		done:    c.GetDone(),
 		pending: c.GetPending(),
+		spped:   specs.NewSpeed(c.GetSpeed()),
 	}
 	b, err := NewProgressBase[T](self, p, c, view, closer, true)
 	if err != nil {
@@ -48,12 +46,6 @@ func NewSpinnerBase[T ProgressInterface](self Self[T, ProgressProtected[T]], p C
 	}
 	e.ProgressBase = *b
 	return e, nil
-}
-
-func (s *SpinnerBase[T]) SetSpeed(v int) T {
-	s.speed = v
-	s.cnt = v - 1
-	return s.self.Self()
 }
 
 func Visualize[T ProgressInterface](s *SpinnerBase[T]) (string, bool) {
@@ -71,13 +63,11 @@ func (s *SpinnerBase[T]) Tick() bool {
 		return false
 	}
 	s.lock.Lock()
-
-	s.cnt++
-	if s.cnt < s.speed {
+	if !s.spped.Tick() {
 		s.lock.Unlock()
 		return false
+
 	}
-	s.cnt = 0
 	s.phase = (s.phase + 1) % len(s.phases)
 	s.lock.Unlock()
 	return s.self.Protected().Update()

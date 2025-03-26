@@ -8,6 +8,7 @@ import (
 
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/blocks"
+	"github.com/mandelsoft/ttyprogress/specs"
 )
 
 // Progress is a set of lines on a terminal
@@ -69,7 +70,7 @@ var _ Container = (*_progress)(nil)
 func For(opt ...io.Writer) Progress {
 	p := &_progress{
 		blocks: blocks.New(opt...),
-		ticker: time.NewTicker(time.Millisecond * 100),
+		ticker: time.NewTicker(specs.Tick),
 	}
 	go p.listen()
 	return p
@@ -114,6 +115,7 @@ func (p *_progress) listen() {
 		case <-p.ticker.C:
 			p.tick()
 		case <-p.Done():
+			p.ticker.Stop()
 			return
 		}
 	}
