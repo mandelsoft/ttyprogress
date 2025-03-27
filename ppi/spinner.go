@@ -3,6 +3,7 @@ package ppi
 import (
 	"sync"
 
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
 
@@ -13,7 +14,7 @@ type SpinnerBaseInterface interface {
 }
 
 type SpinnerBase[P ProgressInterface] struct {
-	ProgressBase[P]
+	*ProgressBase[P]
 
 	lock sync.Mutex
 	self Self[P, ProgressProtected[P]]
@@ -26,8 +27,7 @@ type SpinnerBase[P ProgressInterface] struct {
 
 	spped *specs.Speed
 
-	phases []string
-	phase  int
+	phases specs.Phases
 }
 
 var _ SpinnerBaseInterface = (*SpinnerBase[ProgressInterface])(nil)
@@ -44,18 +44,18 @@ func NewSpinnerBase[T ProgressInterface](self Self[T, ProgressProtected[T]], p C
 	if err != nil {
 		return nil, err
 	}
-	e.ProgressBase = *b
+	e.ProgressBase = b
 	return e, nil
 }
 
-func Visualize[T ProgressInterface](s *SpinnerBase[T]) (string, bool) {
+func Visualize[T ProgressInterface](s *SpinnerBase[T]) (ttycolors.String, bool) {
 	if s.self.Self().IsClosed() {
-		return s.done, true
+		return specs.String(s.done), true
 	}
 	if !s.self.Self().IsStarted() {
-		return s.pending, false
+		return specs.String(s.pending), false
 	}
-	return s.phases[s.phase], false
+	return s.phases.Get(), false
 }
 
 func (s *SpinnerBase[T]) Tick() bool {
@@ -68,7 +68,7 @@ func (s *SpinnerBase[T]) Tick() bool {
 		return false
 
 	}
-	s.phase = (s.phase + 1) % len(s.phases)
+	s.phases.Incr()
 	s.lock.Unlock()
 	return s.self.Protected().Update()
 }

@@ -1,7 +1,7 @@
 package specs
 
 import (
-	"slices"
+	"github.com/mandelsoft/ttycolors"
 )
 
 type SpinnerInterface interface {
@@ -13,7 +13,7 @@ type SpinnerDefinition[T any] struct {
 
 	done    string
 	speed   int
-	phases  []string
+	phases  Phases
 	pending string
 }
 
@@ -43,7 +43,7 @@ func (d *SpinnerDefinition[T]) Dup(s Self[T]) SpinnerDefinition[T] {
 
 func (d *SpinnerDefinition[T]) SetPredefined(i int) T {
 	if c, ok := SpinnerTypes[i]; ok {
-		d.phases = c
+		d.phases = NewStaticPhases(c...)
 	}
 	return d.Self()
 }
@@ -75,13 +75,23 @@ func (d *SpinnerDefinition[T]) GetSpeed() int {
 	return d.speed
 }
 
-func (d *SpinnerDefinition[T]) SetPhases(p []string) T {
-	d.phases = slices.Clone(p)
+func (d *SpinnerDefinition[T]) SetSimplePhases(p ...string) T {
+	d.phases = NewStaticPhases(p...)
 	return d.Self()
 }
 
-func (d *SpinnerDefinition[T]) GetPhases() []string {
-	return slices.Clone(d.phases)
+func (d *SpinnerDefinition[T]) SetPhases(p Phases) T {
+	d.phases = p
+	return d.Self()
+}
+
+func (d *SpinnerDefinition[T]) SetFormattedPhases(p ...ttycolors.String) T {
+	d.phases = NewStaticFormattedPhases(p...)
+	return d.Self()
+}
+
+func (d *SpinnerDefinition[T]) GetPhases() Phases {
+	return d.phases
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +100,9 @@ type SpinnerSpecification[T any] interface {
 	ProgressSpecification[T]
 	SetPredefined(i int) T
 	SetSpeed(v int) T
-	SetPhases(p []string) T
+	SetSimplePhases(p ...string) T
+	SetFormattedPhases(p ...ttycolors.String) T
+	SetPhases(p Phases) T
 	SetDone(string) T
 }
 
@@ -99,5 +111,5 @@ type SpinnerConfiguration interface {
 	GetPending() string
 	GetDone() string
 	GetSpeed() int
-	GetPhases() []string
+	GetPhases() Phases
 }

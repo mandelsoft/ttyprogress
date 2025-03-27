@@ -2,13 +2,23 @@ package specs
 
 import (
 	"fmt"
+	"slices"
+	"sync"
 	"time"
 
+	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/mandelsoft/goutils/stringutils"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/types"
 	"github.com/mandelsoft/ttyprogress/units"
 )
+
+func String(s string) ttycolors.String {
+	if s == "" {
+		return nil
+	}
+	return ttycolors.Sequence(s)
+}
 
 // Message provide a DecoratorFunc for a simple text message.
 func Message(m string) DecoratorFunc {
@@ -113,4 +123,86 @@ func ScrollingText(text string, length int) DecoratorDefinition {
 		text:   text,
 		speed:  3,
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+type Cycle[T any] struct {
+	lock  sync.Mutex
+	elems []T
+	cnt   int
+}
+
+func NewCycle[T any](elems []T) *Cycle[T] {
+	return &Cycle[T]{elems: slices.Clone(elems)}
+}
+
+func (s *Cycle[T]) Incr() {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.cnt++
+	if s.cnt >= len(s.elems) {
+		s.cnt = 0
+	}
+}
+
+func (s *Cycle[T]) Get() T {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	return s.elems[s.cnt]
+}
+
+type Phases interface {
+	Incr()
+	Get() ttycolors.String
+}
+
+var _ Phases = (*Cycle[ttycolors.String])(nil)
+
+func NewStaticPhases(phases ...string) Phases {
+	return NewCycle[ttycolors.String](sliceutils.Transform(phases, String))
+}
+
+func NewStaticFormattedPhases(phases ...ttycolors.String) Phases {
+	return NewCycle(phases)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// NewFormatPhases creates Phases using the same text with a sequence of formats.
+func NewFormatPhases(s string, fmts ...ttycolors.FormatProvider) Phases {
+	var phases []ttycolors.String
+
+	for _, f := range fmts {
+		phases = append(phases, f.Format().String(s))
+	}
+	return NewStaticFormattedPhases(phases...)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+type nestedPhases struct {
+	phases Phases
+	fmts   *Cycle[ttycolors.Format]
+}
+
+// NewNestedFormatPhases creates phases based on a combination
+// of bases phases formatted by a sequence of output formats.
+// The number of phases for both parts may be different.
+func NewNestedFormatPhases(p Phases, fmts ...ttycolors.FormatProvider) Phases {
+	return &nestedPhases{
+		phases: p,
+		fmts:   NewCycle[ttycolors.Format](sliceutils.Transform(fmts, func(f ttycolors.FormatProvider) ttycolors.Format { return f.Format() })),
+	}
+}
+
+func (p *nestedPhases) Incr() {
+	p.phases.Incr()
+	p.fmts.Incr()
+}
+
+func (p *nestedPhases) Get() ttycolors.String {
+	return p.fmts.Get().String(p.phases.Get())
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -86,7 +87,7 @@ func (*barGroupNotifier) Done(b Bar, p any) {
 ////////////////////////////////////////////////////////////////////////////////
 
 type barBase[T ppi.ProgressInterface, V any] struct {
-	ppi.ProgressBase[T]
+	*ppi.ProgressBase[T]
 
 	// total of the total  for the progress bar.
 	total V
@@ -128,7 +129,7 @@ func (b *_barProtected) Update() bool {
 	return b._update()
 }
 
-func (b *_barProtected) Visualize() (string, bool) {
+func (b *_barProtected) Visualize() (ttycolors.String, bool) {
 	return b._visualize()
 }
 
@@ -152,7 +153,7 @@ func newBarBase[T ppi.ProgressInterface](p Container, c specs.BarBaseConfigurati
 	if err != nil {
 		return nil, err
 	}
-	e.ProgressBase = *b
+	e.ProgressBase = b
 	return e, nil
 }
 
@@ -217,18 +218,18 @@ func (b *_Bar[T]) Current() int {
 }
 
 func (b *_Bar[T]) _update() bool {
-	return ppi.Update[T](&b.ProgressBase)
+	return ppi.Update[T](b.ProgressBase)
 }
 
 func runeBytes(r rune) []byte {
 	return []byte(string(r))
 }
 
-func (b *_Bar[T]) _visualize() (string, bool) {
+func (b *_Bar[T]) _visualize() (ttycolors.String, bool) {
 	var buf bytes.Buffer
 
 	if !b.IsStarted() {
-		return b.pending, false
+		return specs.String(b.pending), false
 	}
 	// render visualization
 	if b.width > 0 {
@@ -256,7 +257,7 @@ func (b *_Bar[T]) _visualize() (string, bool) {
 
 		buf.Write(runeBytes(b.config.RightEnd))
 	}
-	return buf.String(), b.current == b.total
+	return ttycolors.Sequence(buf.String()), b.current == b.total
 }
 
 // CompletedPercent return the percent completed

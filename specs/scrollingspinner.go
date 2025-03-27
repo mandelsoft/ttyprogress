@@ -1,9 +1,5 @@
 package specs
 
-import (
-	"slices"
-)
-
 type ScrollingSpinnerInterface interface {
 	ProgressInterface
 }
@@ -12,7 +8,7 @@ type ScrollingSpinnerDefinition[T any] struct {
 	ProgressDefinition[T]
 
 	done    string
-	phases  []string
+	phases  Phases
 	pending string
 }
 
@@ -33,10 +29,12 @@ func NewScrollingSpinnerDefinition[T any](self Self[T], text string, length int)
 		t = t + " " + text
 	}
 
+	var phases []string
 	s := t + t
 	for i := 0; i < len(t); i++ {
-		d.phases = append(d.phases, s[i:i+length])
+		phases = append(phases, s[i:i+length])
 	}
+	d.phases = NewStaticPhases(phases...)
 	return d
 }
 
@@ -68,8 +66,8 @@ func (d *ScrollingSpinnerDefinition[T]) GetSpeed() int {
 	return 3
 }
 
-func (d *ScrollingSpinnerDefinition[T]) GetPhases() []string {
-	return slices.Clone(d.phases)
+func (d *ScrollingSpinnerDefinition[T]) GetPhases() Phases {
+	return d.phases
 }
 
 ////////////////////////////////////////////////////////////////////////////////

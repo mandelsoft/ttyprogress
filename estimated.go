@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -52,7 +53,7 @@ func (b *_estimatedProtected) Update() bool {
 	return b._update()
 }
 
-func (b *_estimatedProtected) Visualize() (string, bool) {
+func (b *_estimatedProtected) Visualize() (ttycolors.String, bool) {
 	return b._visualize()
 }
 
@@ -72,7 +73,7 @@ func newEstimated(p Container, c specs.EstimatedConfiguration) (Estimated, error
 	if err != nil {
 		return nil, err
 	}
-	e.ProgressBase = *b
+	e.ProgressBase = b
 	return e, nil
 }
 
@@ -131,14 +132,14 @@ func (b *_Estimated) Total() time.Duration {
 }
 
 func (b *_Estimated) _update() bool {
-	return ppi.Update[Estimated](&b.ProgressBase)
+	return ppi.Update[Estimated](b.ProgressBase)
 }
 
-func (b *_Estimated) _visualize() (string, bool) {
+func (b *_Estimated) _visualize() (ttycolors.String, bool) {
 	var buf bytes.Buffer
 
 	if !b.IsStarted() {
-		return b.pending, false
+		return specs.String(b.pending), false
 	}
 	// render visualization
 	if b.width > 0 {
@@ -166,7 +167,7 @@ func (b *_Estimated) _visualize() (string, bool) {
 
 		buf.Write(runeBytes(b.config.RightEnd))
 	}
-	return buf.String(), b.IsClosed()
+	return specs.String(buf.String()), b.IsClosed()
 }
 
 // CompletedPercent return the percent completed

@@ -2,6 +2,7 @@ package ttyprogress
 
 import (
 	"github.com/mandelsoft/goutils/stringutils"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -50,7 +51,7 @@ func (b *_stepsProtected) Update() bool {
 	return b._update()
 }
 
-func (b *_stepsProtected) Visualize() (string, bool) {
+func (b *_stepsProtected) Visualize() (ttycolors.String, bool) {
 	return b._visualize()
 }
 

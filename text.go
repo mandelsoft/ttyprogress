@@ -45,7 +45,7 @@ func (d *TextDefinition) Add(c Container) (Text, error) {
 ////////////////////////////////////////////////////////////////////////////////
 
 type _Text struct {
-	ppi.ElemBase[Text, *_textProtected]
+	*ppi.ElemBase[Text, *_textProtected]
 }
 
 type _textProtected struct {
@@ -71,7 +71,7 @@ func newText(p Container, c specs.TextConfiguration) (Text, error) {
 	if err != nil {
 		return nil, err
 	}
-	e.ElemBase = *b
+	e.ElemBase = b
 	if c.GetAuto() {
 		b.Block().SetAuto()
 	}

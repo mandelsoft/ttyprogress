@@ -1,5 +1,5 @@
 config:
-  rows: 15
+  rows: 16
   frameBox:
     title: Colored Progress Bar
   theme:

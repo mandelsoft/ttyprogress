@@ -1,6 +1,7 @@
 package ttyprogress
 
 import (
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -57,7 +58,7 @@ func (s *_spinnerProtected) Update() bool {
 	return s._update()
 }
 
-func (s *_spinnerProtected) Visualize() (string, bool) {
+func (s *_spinnerProtected) Visualize() (ttycolors.String, bool) {
 	return s._visualize()
 }
 
@@ -79,9 +80,9 @@ func (s *_Spinner) finalize() {
 }
 
 func (s *_Spinner) _update() bool {
-	return ppi.Update(&s.ProgressBase)
+	return ppi.Update(s.ProgressBase)
 }
 
-func (s *_Spinner) _visualize() (string, bool) {
+func (s *_Spinner) _visualize() (ttycolors.String, bool) {
 	return ppi.Visualize(&s.SpinnerBase)
 }

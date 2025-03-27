@@ -18,7 +18,7 @@ type ProgressInterface = specs.ProgressInterface
 // indicators.
 type ProgressProtected[I any] interface {
 	ElementProtected[I]
-	Visualize() (string, bool)
+	Visualize() (ttycolors.String, bool)
 }
 
 func ProgressSelf[I ProgressInterface](impl ProgressProtected[I]) Self[I, ProgressProtected[I]] {
@@ -28,7 +28,7 @@ func ProgressSelf[I ProgressInterface](impl ProgressProtected[I]) Self[I, Progre
 // ProgressBase is a base implementation for elements providing
 // a line for progress information.
 type ProgressBase[T ProgressInterface] struct {
-	ElemBase[T, ProgressProtected[T]]
+	*ElemBase[T, ProgressProtected[T]]
 
 	format            ttycolors.Format
 	progressFormat    ttycolors.Format
@@ -64,7 +64,7 @@ func NewProgressBase[T ProgressInterface](self Self[T, ProgressProtected[T]], p 
 	if err != nil {
 		return nil, err
 	}
-	e.ElemBase = *b
+	e.ElemBase = b
 	e.tick = general.OptionalDefaulted(c.GetTick(), tick...)
 	return e, nil
 }
@@ -98,14 +98,14 @@ func (b *ProgressBase[T]) Line() (string, bool) {
 
 	data, done := b.self.Protected().Visualize()
 	// render main function
-	if len(data) > 0 {
+	if data != nil {
 		if sep {
 			seq = append(seq, " ")
 		}
 		if b.progressFormat != nil {
-			seq = append(seq, b.progressFormat.String(string(data)))
+			seq = append(seq, b.progressFormat.String(data))
 		} else {
-			seq = append(seq, string(data))
+			seq = append(seq, data)
 		}
 		sep = true
 	}
