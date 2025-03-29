@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/mandelsoft/goutils/stringutils"
@@ -46,14 +45,14 @@ func (d *NestedStepsDefinition) Add(c Container) (NestedSteps, error) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-type _nestedSteps struct {
+type _NestedStepsImpl struct {
 	lock sync.Mutex
 
 	steps []NestedStep
 	names []string
 
-	group *ppi.GroupBase[NestedSteps, nestedMain]
-	main  nestedMain
+	nestedMain
+	group *ppi.GroupBase[nestedMain]
 	cur   Element
 }
 
@@ -75,55 +74,51 @@ func newNestedSteps(p Container, c specs.NestedStepsConfiguration) (NestedSteps,
 	steps := c.GetSteps()
 	names := stringutils.AlignLeft(sliceutils.Transform(steps, func(step NestedStep) string { return step.Name() }), ' ')
 
-	n := &_nestedSteps{steps: steps, names: names}
-	n.group, n.main = ppi.NewGroupBase[NestedSteps, nestedMain](p, n, c, func(b *ppi.GroupBase[NestedSteps, nestedMain]) (nestedMain, specs.GroupNotifier[nestedMain], error) {
+	n := &_NestedStepsImpl{steps: steps, names: names}
+	n.group, n.nestedMain = ppi.NewGroupBase[nestedMain](p, c, func(b *ppi.GroupBase[nestedMain]) (nestedMain, specs.GroupNotifier[nestedMain], error) {
 		var d nestedMain
 		if c.IsShowStepTitle() {
 			d, err = specs.TransferBarBaseConfig(NewSteps(names...), c).Add(b)
 		} else {
 			d, err = specs.TransferBarBaseConfig(NewBar().SetTotal(len(steps)), c).Add(b)
 		}
-		return d, &specs.DummyGroupNotifier[nestedMain]{}, nil
+		return d, &specs.VoidGroupNotifier[nestedMain]{}, nil
 	})
 	return n, err
 }
 
-func (n *_nestedSteps) SetFinal(m string) {
-	n.main.SetFinal(m)
-}
-
-func (n *_nestedSteps) HideOnClose(b ...bool) {
+func (n *_NestedStepsImpl) HideOnClose(b ...bool) {
 	n.group.HideOnClose(b...)
 }
 
-func (n *_nestedSteps) Hide(b ...bool) {
+func (n *_NestedStepsImpl) Hide(b ...bool) {
 	n.group.Hide(b...)
 }
 
-func (n *_nestedSteps) Flush() error {
+func (n *_NestedStepsImpl) Flush() error {
 	return n.group.Flush()
 }
 
-func (n *_nestedSteps) Start() {
+func (n *_NestedStepsImpl) Start() {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 
-	if n.main.IsStarted() {
+	if n.nestedMain.IsStarted() {
 		return
 	}
-	n.main.Start()
+	n.nestedMain.Start()
 	n.add()
 }
 
-func (n *_nestedSteps) Current() Element {
+func (n *_NestedStepsImpl) Current() Element {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 	return n.cur
 }
 
-func (n *_nestedSteps) add() (Element, error) {
+func (n *_NestedStepsImpl) add() (Element, error) {
 	var err error
-	cur := n.main.Current()
+	cur := n.nestedMain.Current()
 	step := n.steps[cur]
 	def := step.Definition()
 	specs.PrependFunc(def, Message(n.names[cur]), 0)
@@ -134,15 +129,15 @@ func (n *_nestedSteps) add() (Element, error) {
 	return n.cur, err
 }
 
-func (n *_nestedSteps) Incr() (Element, error) {
+func (n *_NestedStepsImpl) Incr() (Element, error) {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 
 	if n.cur != nil {
 		n.cur.Close()
 	}
-	n.main.Incr()
-	if !n.main.IsFinished() {
+	n.nestedMain.Incr()
+	if !n.nestedMain.IsFinished() {
 		return n.add()
 	} else {
 		n.group.Close()
@@ -150,11 +145,11 @@ func (n *_nestedSteps) Incr() (Element, error) {
 	return nil, nil
 }
 
-func (n *_nestedSteps) Close() error {
+func (n *_NestedStepsImpl) Close() error {
 	n.lock.Lock()
 	defer n.lock.Unlock()
 
-	if n.main.IsClosed() {
+	if n.nestedMain.IsClosed() {
 		return os.ErrClosed
 	}
 	if n.cur != nil {
@@ -162,27 +157,11 @@ func (n *_nestedSteps) Close() error {
 	}
 	n.cur = nil
 	n.group.Close()
-	return n.main.Close()
+	return n.nestedMain.Close()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func (n *_nestedSteps) IsStarted() bool {
-	return n.main.IsStarted()
-}
-
-func (n *_nestedSteps) IsClosed() bool {
-	return n.main.IsClosed()
-}
-
-func (n *_nestedSteps) Wait(ctx context.Context) error {
+func (n *_NestedStepsImpl) Wait(ctx context.Context) error {
 	return n.group.Wait(ctx)
-}
-
-func (n *_nestedSteps) TimeElapsed() time.Duration {
-	return n.main.TimeElapsed()
-}
-
-func (n *_nestedSteps) TimeElapsedString() string {
-	return n.main.TimeElapsedString()
 }

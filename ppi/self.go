@@ -1,36 +1,36 @@
 package ppi
 
-type Protected[I any] interface {
-	Self() I
-}
-
 // Self represents the effective object,
 // the extended self passed to some kind of
 // base implementations.
-// It contains the effective object
-// and a wrapper implementing
-// the protected methods required by the
-// base implementation but not published
-// on the public object interface.
-// I is the public effective object interface
-// and P the protected implementation wrapper.
-type Self[I any, P Protected[I]] interface {
-	Self() I
+// It contains the effective object public
+// object and the protected or implementation
+// object.
+// To support reentrant synchronization
+// the implementation object should not use
+// locking, this has to be done by the
+// public view. It must implement all
+// public methods using locking and
+// forwarding the locked call to the
+// implementation object.
+type Self[P, O any] interface {
+	Self() O
 	Protected() P
 }
 
-type self[I any, P Protected[I]] struct {
+type self[P, O any] struct {
+	self      O
 	protected P
 }
 
-func (s *self[I, P]) Self() I {
-	return s.protected.Self()
+func (s *self[P, O]) Self() O {
+	return s.self
 }
 
-func (s *self[I, P]) Protected() P {
+func (s *self[P, O]) Protected() P {
 	return s.protected
 }
 
-func NewSelf[I any, P Protected[I]](p P) Self[I, P] {
-	return &self[I, P]{p}
+func NewSelf[P, O any](p P, o O) Self[P, O] {
+	return &self[P, O]{o, p}
 }

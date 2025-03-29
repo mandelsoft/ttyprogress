@@ -22,7 +22,7 @@ func String(s string) ttycolors.String {
 
 // Message provide a DecoratorFunc for a simple text message.
 func Message(m string) DecoratorFunc {
-	return func(element ElementInterface) any {
+	return func(element ElementState) any {
 		return m
 	}
 }
@@ -46,7 +46,7 @@ type formattedDecoratorDefinition struct {
 	def    DecoratorDefinition
 }
 
-func (d *formattedDecoratorDefinition) CreateDecorator(e ElementInterface) types.Decorator {
+func (d *formattedDecoratorDefinition) CreateDecorator(e ElementState) types.Decorator {
 	return &formattedDecorator{d.format, d.def.CreateDecorator(e)}
 }
 
@@ -100,7 +100,7 @@ type scrollingTextDef struct {
 	speed  int
 }
 
-func (s *scrollingTextDef) CreateDecorator(e ElementInterface) types.Decorator {
+func (s *scrollingTextDef) CreateDecorator(e ElementState) types.Decorator {
 	t := s.text
 	if len(s.text) <= s.length {
 		return Message(stringutils.PadRight(t, s.length, ' ')).CreateDecorator(e)

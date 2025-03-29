@@ -19,14 +19,14 @@ type String ttycolors.String
 // The returned type may be a string or a ttycolors.String. All other types
 // are converted to a string value by calling the method String() or using the Go native
 // conversion (print format %v).
-type DecoratorFunc func(b Element) any
+type DecoratorFunc func(b ElementState) any
 
-func (d DecoratorFunc) CreateDecorator(b Element) Decorator {
+func (d DecoratorFunc) CreateDecorator(b ElementState) Decorator {
 	return &decoratorFuncDecorator{b, d}
 }
 
 type decoratorFuncDecorator struct {
-	b Element
+	b ElementState
 	f DecoratorFunc
 }
 
@@ -66,13 +66,12 @@ type Element interface {
 	// IsClosed reports whether element has already been closed.
 	IsClosed() bool
 
+	// IsFinished returns whether the progress is done.
+	IsFinished() bool
+
 	// TimeElapsed reports the duration this element has been
 	// active (time since Start or between Start and Close).
 	TimeElapsed() time.Duration
-
-	// TimeElapsedString provides a nice string representation for
-	// TimeElapsed.
-	TimeElapsedString() string
 
 	// Flush emits the current output.
 	Flush() error
@@ -85,4 +84,13 @@ type Element interface {
 // creating an element of type T.
 type ElementDefinition[T Element] interface {
 	Add(Container) (T, error)
+}
+
+// ElementState is the interface for
+// passed to decorators to retrieve information
+// about the actual element state.
+type ElementState interface {
+	IsStarted() bool
+	IsFinished() bool
+	TimeElapsed() time.Duration
 }

@@ -22,7 +22,7 @@ var (
 	_ SpinnerConfiguration                    = (*SpinnerDefinition[ProgressInterface])(nil)
 )
 
-// NewSpinnerDef can be used to create a nested definition
+// NewSpinnerDefinition can be used to create a nested definition
 // for a derived spinner definition.
 func NewSpinnerDefinition[T any](self Self[T]) SpinnerDefinition[T] {
 	d := SpinnerDefinition[T]{

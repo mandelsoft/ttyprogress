@@ -15,8 +15,7 @@ type Gapped interface {
 	Gap() string
 }
 
-type GroupBase[I any, T ProgressInterface] struct {
-	self     I
+type GroupBase[T ProgressInterface] struct {
 	lock     sync.RWMutex
 	parent   Container
 	pgap     string
@@ -31,9 +30,8 @@ type GroupBase[I any, T ProgressInterface] struct {
 	closed bool
 }
 
-func NewGroupBase[I any, T ProgressInterface](p Container, self I, c specs.GroupBaseConfiguration, main func(base *GroupBase[I, T]) (T, specs.GroupNotifier[T], error)) (*GroupBase[I, T], T) {
-	g := &GroupBase[I, T]{
-		self:     self,
+func NewGroupBase[T ProgressInterface](p Container, c specs.GroupBaseConfiguration, main func(base *GroupBase[T]) (T, specs.GroupNotifier[T], error)) (*GroupBase[T], T) {
+	g := &GroupBase[T]{
 		parent:   p,
 		gap:      c.GetGap(),
 		followup: c.GetFollowUpGap(),
@@ -52,23 +50,23 @@ func NewGroupBase[I any, T ProgressInterface](p Container, self I, c specs.Group
 	}
 }
 
-func (g *GroupBase[I, T]) SetFinal(m string) {
+func (g *GroupBase[T]) SetFinal(m string) {
 	g.blocks[0].SetFinal(m)
 }
 
-func (g *GroupBase[I, T]) HideOnClose(b ...bool) {
+func (g *GroupBase[T]) HideOnClose(b ...bool) {
 	g.blocks[0].HideOnClose(b...)
 }
 
-func (g *GroupBase[I, T]) IsHideOnClose() bool {
+func (g *GroupBase[T]) IsHideOnClose() bool {
 	return g.blocks[0].IsHideOnClose()
 }
 
-func (g *GroupBase[I, T]) IsHidden() bool {
+func (g *GroupBase[T]) IsHidden() bool {
 	return g.blocks[0].IsHidden()
 }
 
-func (g *GroupBase[I, T]) Hide(b ...bool) {
+func (g *GroupBase[T]) Hide(b ...bool) {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 
@@ -94,7 +92,7 @@ func (g *GroupBase[I, T]) Hide(b ...bool) {
 	}
 }
 
-func (g *GroupBase[I, T]) AddBlock(b *blocks.Block) error {
+func (g *GroupBase[T]) AddBlock(b *blocks.Block) error {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 
@@ -126,31 +124,27 @@ func (g *GroupBase[I, T]) AddBlock(b *blocks.Block) error {
 	return nil
 }
 
-func (g *GroupBase[I, T]) Flush() error {
+func (g *GroupBase[T]) Flush() error {
 	return g.main.Flush()
 }
 
-func (g *GroupBase[I, T]) Gap() string {
+func (g *GroupBase[T]) Gap() string {
 	return g.pgap + g.followup
 }
 
-func (g *GroupBase[I, T]) TimeElapsed() time.Duration {
+func (g *GroupBase[T]) TimeElapsed() time.Duration {
 	return g.main.TimeElapsed()
 }
 
-func (g *GroupBase[I, T]) TimeElapsedString() string {
-	return g.main.TimeElapsedString()
-}
-
-func (g *GroupBase[I, T]) Start() {
+func (g *GroupBase[T]) Start() {
 	g.main.Start()
 }
 
-func (g *GroupBase[I, T]) IsStarted() bool {
+func (g *GroupBase[T]) IsStarted() bool {
 	return g.main.IsStarted()
 }
 
-func (g *GroupBase[I, T]) Close() error {
+func (g *GroupBase[T]) Close() error {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 	if g.closed {
@@ -173,12 +167,16 @@ func (g *GroupBase[I, T]) Close() error {
 	return nil
 }
 
-func (g *GroupBase[I, T]) IsClosed() bool {
+func (g *GroupBase[T]) IsClosed() bool {
 	g.lock.RLock()
 	defer g.lock.RUnlock()
 	return g.closed
 }
 
-func (g *GroupBase[I, T]) Wait(ctx context.Context) error {
+func (g *GroupBase[T]) IsFinished() bool {
+	return g.main.IsFinished()
+}
+
+func (g *GroupBase[T]) Wait(ctx context.Context) error {
 	return g.blocks[0].Wait(ctx)
 }
