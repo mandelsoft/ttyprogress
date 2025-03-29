@@ -36,7 +36,7 @@ func (d *TextSpinnerDefinition) Add(c Container) (TextSpinner, error) {
 ////////////////////////////////////////////////////////////////////////////////
 
 type _TextSpinner struct {
-	ppi.SpinnerBase[TextSpinner]
+	*ppi.SpinnerBase[TextSpinner]
 	closed bool
 }
 
@@ -66,7 +66,7 @@ func newTextSpinner(p Container, c specs.TextSpinnerConfiguration) (TextSpinner,
 	if err != nil {
 		return nil, err
 	}
-	e.SpinnerBase = *b
+	e.SpinnerBase = b
 	return e, nil
 }
 
@@ -82,5 +82,5 @@ func (s *_TextSpinner) _update() bool {
 }
 
 func (s *_TextSpinner) _visualize() (ttycolors.String, bool) {
-	return ppi.Visualize(&s.SpinnerBase)
+	return ppi.Visualize(s.SpinnerBase)
 }

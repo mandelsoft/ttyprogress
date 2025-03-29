@@ -42,7 +42,7 @@ func (d *SpinnerDefinition) Add(c Container) (Spinner, error) {
 ////////////////////////////////////////////////////////////////////////////////
 
 type _Spinner struct {
-	ppi.SpinnerBase[Spinner]
+	*ppi.SpinnerBase[Spinner]
 	closed bool
 }
 
@@ -71,7 +71,7 @@ func newSpinner(p Container, c specs.SpinnerConfiguration) (Spinner, error) {
 	if err != nil {
 		return nil, err
 	}
-	e.SpinnerBase = *b
+	e.SpinnerBase = b
 	return e, nil
 }
 
@@ -84,5 +84,5 @@ func (s *_Spinner) _update() bool {
 }
 
 func (s *_Spinner) _visualize() (ttycolors.String, bool) {
-	return ppi.Visualize(&s.SpinnerBase)
+	return ppi.Visualize(s.SpinnerBase)
 }

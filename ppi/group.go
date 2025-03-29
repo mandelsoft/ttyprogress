@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mandelsoft/goutils/optionutils"
 	"github.com/mandelsoft/ttyprogress/blocks"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -22,10 +23,12 @@ type GroupBase[I any, T ProgressInterface] struct {
 	gap      string
 	followup string
 
-	main     T
-	notifier specs.GroupNotifier[T]
-	blocks   []*blocks.Block
-	closed   bool
+	main      T
+	notifier  specs.GroupNotifier[T]
+	blocks    []*blocks.Block
+	blockinfo map[*blocks.Block]bool
+
+	closed bool
 }
 
 func NewGroupBase[I any, T ProgressInterface](p Container, self I, c specs.GroupBaseConfiguration, main func(base *GroupBase[I, T]) (T, specs.GroupNotifier[T], error)) (*GroupBase[I, T], T) {
@@ -34,6 +37,7 @@ func NewGroupBase[I any, T ProgressInterface](p Container, self I, c specs.Group
 		parent:   p,
 		gap:      c.GetGap(),
 		followup: c.GetFollowUpGap(),
+		blocks:   []*blocks.Block{},
 	}
 	if pg, ok := p.(Gapped); ok {
 		g.pgap = pg.Gap()
@@ -45,6 +49,48 @@ func NewGroupBase[I any, T ProgressInterface](p Container, self I, c specs.Group
 		g.main = m
 		g.notifier = n
 		return g, g.main
+	}
+}
+
+func (g *GroupBase[I, T]) SetFinal(m string) {
+	g.blocks[0].SetFinal(m)
+}
+
+func (g *GroupBase[I, T]) HideOnClose(b ...bool) {
+	g.blocks[0].HideOnClose(b...)
+}
+
+func (g *GroupBase[I, T]) IsHideOnClose() bool {
+	return g.blocks[0].IsHideOnClose()
+}
+
+func (g *GroupBase[I, T]) IsHidden() bool {
+	return g.blocks[0].IsHidden()
+}
+
+func (g *GroupBase[I, T]) Hide(b ...bool) {
+	g.lock.Lock()
+	defer g.lock.Unlock()
+
+	if optionutils.BoolOption(b...) {
+		if g.blocks[0].IsHidden() {
+			return
+		}
+		// save state and hide
+		for _, b := range g.blocks[1:] {
+			g.blockinfo[b] = b.IsHidden()
+			b.Hide()
+		}
+		g.blocks[0].Hide()
+	} else {
+		if !g.blocks[0].IsHidden() {
+			return
+		}
+		// restore state
+		for _, b := range g.blocks[1:] {
+			b.Hide(g.blockinfo[b])
+		}
+		g.blocks[0].Hide(false)
 	}
 }
 
@@ -115,6 +161,12 @@ func (g *GroupBase[I, T]) Close() error {
 	go func() {
 		for _, b := range g.blocks[1:] {
 			b.Wait(nil)
+		}
+
+		if g.blocks[0].IsHideOnClose() {
+			for _, b := range g.blocks[1:] {
+				b.Hide()
+			}
 		}
 		g.main.Close()
 	}()

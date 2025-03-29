@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mandelsoft/ttyprogress"
+	"github.com/mandelsoft/ttyprogress/synclog"
 )
 
 func Step(n string) ttyprogress.NestedStep {
@@ -16,6 +17,7 @@ func Step(n string) ttyprogress.NestedStep {
 }
 
 func main() {
+	synclog.LogToFile("local/lock.log")
 	p := ttyprogress.For(os.Stdout)
 
 	bar, _ := ttyprogress.NewNestedSteps(

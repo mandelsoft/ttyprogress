@@ -7,10 +7,10 @@ import (
 	"io"
 	"os"
 	"runtime"
-	"strings"
 
 	"github.com/mandelsoft/goutils/atomic"
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/goutils/optionutils"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttycolors/ansi"
 )
@@ -51,7 +51,9 @@ type Block struct {
 	closed bool
 	done   chan struct{}
 
-	final []byte
+	final       []byte
+	hideOnClose bool
+	hidden      bool
 
 	closer []func()
 }
@@ -94,6 +96,26 @@ func (w *Block) Blocks() *Blocks {
 func (w *Block) RegisterCloser(f func()) {
 	defer w.lock()()
 	w.closer = append(w.closer, f)
+}
+
+func (w *Block) HideOnClose(b ...bool) *Block {
+	w.hideOnClose = optionutils.BoolOption(b...)
+	return w
+}
+
+func (w *Block) IsHideOnClose() bool {
+	defer w.rlock()()
+	return w.hideOnClose
+}
+
+func (w *Block) Hide(b ...bool) *Block {
+	w.hidden = optionutils.BoolOption(b...)
+	return w
+}
+
+func (w *Block) IsHidden() bool {
+	defer w.rlock()()
+	return w.hidden
 }
 
 func (w *Block) SetTitleFormat(f ttycolors.Format) *Block {
@@ -192,9 +214,6 @@ func (w *Block) Write(buf []byte) (n int, err error) {
 		return 0, os.ErrClosed
 	}
 
-	if strings.HasPrefix(string(buf), "doing") {
-		w.buf.String()
-	}
 	contentgap := w.followupGap + w.contentGap
 	gap := contentgap
 	if w.buf.Len() == 0 && w.titleline == "" {
@@ -237,6 +256,10 @@ func (w *Block) Close() error {
 	}
 	if w.closed {
 		return os.ErrClosed
+	}
+	if w.hideOnClose {
+		w.requestFlush()
+		w.hidden = true
 	}
 	w.closed = true
 	close(w.done)
@@ -297,6 +320,9 @@ func (w *Block) _formatView(v []byte) []byte {
 func (w *Block) emit(final bool) (int, error) {
 	blocks := w.blocks.Load()
 
+	if w.hidden {
+		return 0, nil
+	}
 	lines := 0
 	titleline := 0
 	newline := false

@@ -112,7 +112,7 @@ func (b *barBase[T, V]) Total() V {
 
 // _Bar represents a progress bar
 type _Bar[T ppi.ProgressInterface] struct {
-	barBase[T, int]
+	*barBase[T, int]
 
 	current int
 }
@@ -142,7 +142,7 @@ func newBar(p Container, c specs.BarConfiguration[int], total ...int) (Bar, erro
 
 func newBarBase[T ppi.ProgressInterface](p Container, c specs.BarBaseConfiguration, total int, self func(*_Bar[T]) ppi.Self[T, ppi.ProgressProtected[T]]) (*_Bar[T], error) {
 	e := &_Bar[T]{
-		barBase: barBase[T, int]{
+		barBase: &barBase[T, int]{
 			total:   total,
 			width:   c.GetWidth(),
 			config:  c.GetConfig(),

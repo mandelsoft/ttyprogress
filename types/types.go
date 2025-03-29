@@ -50,6 +50,12 @@ type Container interface {
 type Element interface {
 	io.Closer
 
+	// Hide hides the element.
+	Hide(...bool)
+
+	// SetFinal overrides the completion message.
+	SetFinal(m string)
+
 	// Start records the actual start time and
 	// starts the element.
 	Start()

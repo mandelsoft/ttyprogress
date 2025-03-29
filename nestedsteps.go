@@ -88,6 +88,18 @@ func newNestedSteps(p Container, c specs.NestedStepsConfiguration) (NestedSteps,
 	return n, err
 }
 
+func (n *_nestedSteps) SetFinal(m string) {
+	n.main.SetFinal(m)
+}
+
+func (n *_nestedSteps) HideOnClose(b ...bool) {
+	n.group.HideOnClose(b...)
+}
+
+func (n *_nestedSteps) Hide(b ...bool) {
+	n.group.Hide(b...)
+}
+
 func (n *_nestedSteps) Flush() error {
 	return n.group.Flush()
 }

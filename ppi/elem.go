@@ -3,13 +3,14 @@ package ppi
 import (
 	"context"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/blocks"
 	"github.com/mandelsoft/ttyprogress/specs"
+	"github.com/mandelsoft/ttyprogress/synclog"
 )
 
 // ElementInterface in the public interface of elements.
@@ -33,7 +34,7 @@ type (
 )
 
 type ElemBase[I ElementInterface, P ElementProtected[I]] struct {
-	Lock sync.RWMutex
+	Lock synclog.RWMutex
 
 	self Self[I, P]
 
@@ -51,12 +52,20 @@ func NewElemBase[I ElementInterface, P ElementProtected[I]](self Self[I, P], p C
 	if view <= 0 {
 		view = 1
 	}
+
 	b := blocks.NewBlock(view)
-	e := &ElemBase[I, P]{self: self, block: b, closer: general.Optional(closer...)}
+
+	e := &ElemBase[I, P]{Lock: synclog.NewRWMutex(generics.TypeOf[I]().String()), self: self, block: b, closer: general.Optional(closer...)}
 
 	b.SetPayload(self.Self())
 	if c.GetFinal() != "" {
 		b.SetFinal(c.GetFinal())
+	}
+	if c.GetHideOnClose() {
+		b.HideOnClose(c.GetHideOnClose())
+	}
+	if c.GetHide() {
+		b.Hide(c.GetHide())
 	}
 	pgap := ""
 	if g, ok := p.(Gapped); ok {
@@ -84,9 +93,24 @@ func NewElemBase[I ElementInterface, P ElementProtected[I]](self Self[I, P], p C
 	return e, nil
 }
 
-func (b *ElemBase[I, P]) SetFinal(m string) I {
+func (b *ElemBase[I, P]) HideOnClose(f ...bool) {
+	b.block.HideOnClose(f...)
+}
+
+func (b *ElemBase[I, P]) IsHideOnClose() bool {
+	return b.block.IsHideOnClose()
+}
+
+func (b *ElemBase[I, P]) Hide(f ...bool) {
+	b.block.Hide(f...)
+}
+
+func (b *ElemBase[I, P]) IsHidden() bool {
+	return b.block.IsHidden()
+}
+
+func (b *ElemBase[I, P]) SetFinal(m string) {
 	b.block.SetFinal(m)
-	return b.self.Self()
 }
 
 func (b *ElemBase[I, P]) Block() *blocks.Block {
@@ -183,4 +207,17 @@ func (b *ElemBase[I, P]) TimeElapsedString() string {
 		return specs.PrettyTime(b.TimeElapsed())
 	}
 	return ""
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+type ElementLocker interface {
+	RLock() RLockedElement
+	Lock() LockedElement
+}
+
+type LockedElement interface {
+}
+
+type RLockedElement interface {
 }

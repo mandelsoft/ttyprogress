@@ -1,6 +1,7 @@
 package specs
 
 import (
+	"github.com/mandelsoft/goutils/optionutils"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/types"
 )
@@ -10,8 +11,10 @@ import (
 type ElementInterface = types.Element
 
 type ElementDefinition[T any] struct {
-	self  Self[T]
-	final string
+	self        Self[T]
+	final       string
+	hideOnClose bool
+	hide        bool
 }
 
 var (
@@ -31,6 +34,24 @@ func (d *ElementDefinition[T]) Dup(s Self[T]) ElementDefinition[T] {
 	dup := *d
 	dup.self = s
 	return dup
+}
+
+func (e *ElementDefinition[T]) HideOnClose(b ...bool) T {
+	e.hideOnClose = optionutils.BoolOption(b...)
+	return e.self.Self()
+}
+
+func (e *ElementDefinition[T]) Hide(b ...bool) T {
+	e.hide = optionutils.BoolOption(b...)
+	return e.self.Self()
+}
+
+func (e *ElementDefinition[T]) GetHide() bool {
+	return e.hide
+}
+
+func (e *ElementDefinition[T]) GetHideOnClose() bool {
+	return e.hideOnClose
 }
 
 func (e *ElementDefinition[T]) SetFinal(m string) T {
@@ -79,10 +100,18 @@ type ElementSpecification[T any] interface {
 	// SetFinal sets a text message shown instead of the
 	// text window after the action has been finished.
 	SetFinal(string) T
+	// HideOnClose will request to hide the element
+	// when it is closed.
+	HideOnClose(...bool) T
+
+	// Hide will request to initially hide the element.
+	Hide(...bool) T
 }
 
 type ElementConfiguration interface {
 	// GetFinal gets a text message shown instead of the
 	// text window after the action has been finished.
 	GetFinal() string
+	GetHideOnClose() bool
+	GetHide() bool
 }
