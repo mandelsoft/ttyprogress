@@ -9,7 +9,7 @@ import (
 type DecoratorFunc = types.DecoratorFunc
 
 type Element = types.Element
-
+type ElementState = types.ElementState
 type Container = types.Container
 
 type ElementDefinition[T Element] interface {

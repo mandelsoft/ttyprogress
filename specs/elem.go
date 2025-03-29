@@ -6,9 +6,11 @@ import (
 	"github.com/mandelsoft/ttyprogress/types"
 )
 
-// ElementInterface is the common interface of all
+// Element is the common interface of all
 // elements provided by the ttyprogress package
-type ElementInterface = types.Element
+type Element = types.Element
+
+type ElementState = types.ElementState
 
 type ElementDefinition[T any] struct {
 	self        Self[T]
@@ -114,4 +116,13 @@ type ElementConfiguration interface {
 	GetFinal() string
 	GetHideOnClose() bool
 	GetHide() bool
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+func TransferElementConfig[D ElementSpecification[T], T any](d D, c ElementConfiguration) D {
+	d.HideOnClose(c.GetHideOnClose())
+	d.Hide(c.GetHide())
+	d.SetFinal(c.GetFinal())
+	return d
 }

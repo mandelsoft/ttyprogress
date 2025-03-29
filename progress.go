@@ -3,6 +3,7 @@ package ttyprogress
 import (
 	"context"
 	"io"
+	"os"
 	"sync"
 	"time"
 
@@ -56,6 +57,7 @@ type _progress struct {
 	ticker *time.Ticker
 
 	elements []Element
+	closed   bool
 }
 
 var _ Container = (*_progress)(nil)
@@ -94,6 +96,11 @@ func (p *_progress) EnableColors(b ...bool) Progress {
 }
 
 func (p *_progress) AddBlock(b *blocks.Block) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	if p.closed {
+		return os.ErrClosed
+	}
 	return p.blocks.AddBlock(b)
 }
 
@@ -102,7 +109,12 @@ func (p *_progress) Done() <-chan struct{} {
 }
 
 func (p *_progress) Close() error {
-	return p.blocks.Close()
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	p.blocks.CloseOnDone()
+	p.closed = true
+	return nil
 }
 
 func (p *_progress) Wait(ctx context.Context) error {

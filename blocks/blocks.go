@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/sync/semaphore"
+
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/ttycolors"
 )
@@ -21,7 +23,7 @@ import (
 type Blocks struct {
 	lock sync.RWMutex
 
-	ctx ttycolors.TTYContext
+	ttyctx ttycolors.TTYContext
 	// out is the writer to write to
 	out       io.Writer
 	termWidth int
@@ -31,23 +33,25 @@ type Blocks struct {
 	blocks    []*Block
 	lineCount int
 
-	closed bool
-	done   chan struct{}
-
-	timer   *time.Timer
-	pending bool
+	closeOnDone bool
+	closed      bool
+	done        chan struct{}
+	cancel      context.CancelFunc
+	ctx         context.Context
+	request     *request
 }
 
 // New returns a new Blocks with defaults
 func New(opt ...io.Writer) *Blocks {
 	w := &Blocks{
-		out:   general.OptionalDefaulted[io.Writer](os.Stdout, opt...),
-		done:  make(chan struct{}),
-		timer: time.NewTimer(0),
+		out:     general.OptionalDefaulted[io.Writer](os.Stdout, opt...),
+		done:    make(chan struct{}),
+		request: newRequest(),
 	}
+	w.ctx, w.cancel = context.WithCancel(context.Background())
 
 	if f, ok := w.out.(*os.File); ok {
-		w.ctx = ttycolors.NewContext(ttycolors.IsTerminal(f))
+		w.ttyctx = ttycolors.NewContext(ttycolors.IsTerminal(f))
 	}
 	termWidth, _ := getTermSize()
 	if termWidth != 0 {
@@ -59,40 +63,45 @@ func New(opt ...io.Writer) *Blocks {
 }
 
 func (w *Blocks) EnableColors(b ...bool) {
-	w.ctx.Enable(b...)
+	w.ttyctx.Enable(b...)
 }
 
 func (w *Blocks) IsColorsEnabled() bool {
-	return w.ctx.IsEnabled()
+	return w.ttyctx.IsEnabled()
 }
 
 func (w *Blocks) GetTTYGontext() ttycolors.TTYContext {
 	if w == nil {
 		return ttycolors.NewContext()
 	}
-	return w.ctx
+	return w.ttyctx
 }
 
 func (w *Blocks) requestFlush() {
-	if w.pending {
-		return
-	}
-	w.pending = true
-	w.timer.Reset(time.Millisecond * 5)
+	w.request.Request()
 }
 
 func (w *Blocks) Done() <-chan struct{} {
 	return w.done
 }
 
+func (w *Blocks) _flush() {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	w.clearLines()
+	w.flush()
+}
+
 func (w *Blocks) listen() {
+
 	for {
-		select {
-		case <-w.done:
+		err := w.request.Wait(w.ctx)
+		w._flush()
+		if err != nil {
+			close(w.done)
 			return
-		case <-w.timer.C:
-			w.Flush()
 		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -168,6 +177,12 @@ func (w *Blocks) _addBlock(b *Block, p *Block, offset int) error {
 	return nil
 }
 
+func (w *Blocks) NoOfBlocks() int {
+	w.lock.RLock()
+	defer w.lock.RUnlock()
+	return len(w.blocks)
+}
+
 func (w *Blocks) Blocks() []*Block {
 	w.lock.RLock()
 	defer w.lock.RUnlock()
@@ -179,6 +194,14 @@ func (w *Blocks) TermWidth() int {
 	defer w.lock.RUnlock()
 
 	return w.termWidth
+}
+
+func (w *Blocks) CloseOnDone() {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+
+	w.closeOnDone = true
+	w.checkDone()
 }
 
 // Close closed the line range.
@@ -193,7 +216,15 @@ func (w *Blocks) Close() error {
 		return os.ErrClosed
 	}
 	w.closed = true
+	w.checkDone()
 	return nil
+}
+
+func (w *Blocks) checkDone() {
+	if (w.closed || w.closeOnDone) && len(w.blocks) == 0 {
+		w.closed = true
+		w.cancel()
+	}
 }
 
 // Wait waits until the object and all included
@@ -224,22 +255,15 @@ func (w *Blocks) discardBlock() error {
 	}
 	if discarded {
 		err := w.flush()
-		if w.closed && len(w.blocks) == 0 {
-			close(w.done)
-		}
+		w.checkDone()
 		return err
 	}
 	return nil
 }
 
 func (w *Blocks) Flush() error {
-	w.lock.Lock()
-	defer w.lock.Unlock()
-
-	w.timer.Stop()
-	w.pending = false
-	w.clearLines()
-	return w.flush()
+	w.requestFlush()
+	return nil
 }
 
 func (w *Blocks) flush() error {
@@ -253,4 +277,42 @@ func (w *Blocks) flush() error {
 	}
 	w.lineCount = lines
 	return err
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+type request struct {
+	lock sync.Mutex
+
+	sema    *semaphore.Weighted
+	pending bool
+}
+
+func newRequest() *request {
+	r := &request{
+		sema: semaphore.NewWeighted(1),
+	}
+	r.sema.Acquire(context.Background(), 1)
+	return r
+}
+
+func (r *request) Request() {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	if !r.pending {
+		r.pending = true
+		r.sema.Release(1)
+
+	}
+}
+
+func (r *request) Wait(ctx context.Context) error {
+	if err = r.sema.Acquire(ctx, 1); err != nil {
+		return err
+	}
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.pending = false
+	return nil
 }

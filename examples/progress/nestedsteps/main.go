@@ -12,8 +12,10 @@ import (
 func Step(n string) ttyprogress.NestedStep {
 	return ttyprogress.NewNestedStep[ttyprogress.Bar](
 		n, ttyprogress.NewBar().SetTotal(100).
+			// HideOnClose().
 			PrependElapsed().
-			AppendCompleted())
+			AppendCompleted(),
+	)
 }
 
 func main() {
@@ -33,6 +35,8 @@ func main() {
 		AppendCompleted().
 		Add(p)
 
+	p.Close()
+
 	go func() {
 		bar.Start()
 		e := bar.Current()
@@ -45,5 +49,5 @@ func main() {
 		}
 	}()
 
-	bar.Wait(nil)
+	p.Wait(nil)
 }

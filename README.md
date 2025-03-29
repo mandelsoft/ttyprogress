@@ -33,7 +33,19 @@ a terminal output.
 import "github.com/mandelsoft/ttyprogress"
 
 p := ttyprogress.For(os.Stdout)
+
+...
+
+p.Close()
+
+err := p.Wait(ctx)
 ```
+
+Once a `Progress` object is created for a writer, the writer MUST NOT be used
+until the progress is finished (for example by calling `Wait`).
+As long a `Close` is not called, it is possible to add progress indicators.
+`Close` MUST be called prior to `Wait`. `Wait` waits until the progrss object is closed and all added indicators are closed and finished.
+
 Progress indicators are defined by progress indicator definition 
 objects. For every archetype there is one constructor function providing
 a basic configuration.
@@ -43,7 +55,7 @@ a basic configuration.
 bartype := ttyprogress.NewBar()
 ```
 
-This configuration can be refined by various setters. 
+This configuration can be refined by various chainable setters. 
 
 ```golang
 bartype.SetWidth(ttypprogress.PercentTerminalSize(50))
@@ -51,7 +63,7 @@ bartype.SetWidth(ttypprogress.PercentTerminalSize(50))
 
 Any such configuration can be used as preconfigured type, which can be
 instantiated with `New`. It creates a new configuration based on the given
-one, which can be configured independently of the original configuration.
+one, which can furthermore be configured independently of the original configuration.
 
 ```golang
 newtype := ttyprogress.New(bartype)

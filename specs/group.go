@@ -4,11 +4,6 @@ import (
 	"github.com/mandelsoft/ttyprogress/types"
 )
 
-type GroupInterface interface {
-	Container
-	ElementInterface
-}
-
 // GroupNotifier is used to propagate
 // group changes to the main group progress indicator.
 type GroupNotifier[E ProgressInterface] interface {
@@ -23,19 +18,26 @@ type GroupProgressElementDefinition[E ProgressInterface] interface {
 	GetGroupNotifier() GroupNotifier[E]
 }
 
-type DummyGroupNotifier[E any] struct{}
+type VoidGroupNotifier[E any] struct{}
 
-var _ GroupNotifier[ProgressInterface] = (*DummyGroupNotifier[ProgressInterface])(nil)
+var _ GroupNotifier[ProgressInterface] = (*VoidGroupNotifier[ProgressInterface])(nil)
 
-func (d *DummyGroupNotifier[E]) Add(e E, o any)  {}
-func (d *DummyGroupNotifier[E]) Done(e E, o any) {}
+func (d *VoidGroupNotifier[E]) Add(e E, o any)  {}
+func (d *VoidGroupNotifier[E]) Done(e E, o any) {}
 
-type GroupDefinition[T any, E ElementInterface] struct {
+////////////////////////////////////////////////////////////////////////////////
+
+type GroupInterface interface {
+	Container
+	Element
+}
+
+type GroupDefinition[T any, E Element] struct {
 	GroupBaseDefinition[T]
 	main GroupProgressElementDefinition[E]
 }
 
-func NewGroupDefinition[T any, E ElementInterface](s Self[T], main GroupProgressElementDefinition[E]) *GroupDefinition[T, E] {
+func NewGroupDefinition[T any, E Element](s Self[T], main GroupProgressElementDefinition[E]) *GroupDefinition[T, E] {
 	return &GroupDefinition[T, E]{
 		main:                main,
 		GroupBaseDefinition: NewGroupBaseDefinition(s),
@@ -58,7 +60,7 @@ type GroupSpecification[T any] interface {
 	GroupBaseSpecification[T]
 }
 
-type GroupConfiguration[E ElementInterface] interface {
+type GroupConfiguration[E Element] interface {
 	GroupBaseConfiguration
 
 	// GetProgress provides the main group progress indicator.

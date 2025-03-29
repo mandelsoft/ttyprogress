@@ -9,7 +9,7 @@ import (
 )
 
 type ProgressInterface interface {
-	ElementInterface
+	Element
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,6 +47,11 @@ func (d *ProgressDefinition[T]) Dup(s Self[T]) ProgressDefinition[T] {
 // GetTick returns whether a tick is required.
 func (d *ProgressDefinition[T]) GetTick() bool {
 	return d.tick
+}
+
+// setTick returns whether a tick is required.
+func (d *ProgressDefinition[T]) setTick(b bool) {
+	d.tick = b || d.tick
 }
 
 // SetDecoratorFormat sets the output format for the next decorator.
@@ -146,17 +151,13 @@ func (d *ProgressDefinition[T]) GetPrependDecorators() []DecoratorDefinition {
 // AppendElapsed appends the time elapsed to the progress indicator
 func (d *ProgressDefinition[T]) AppendElapsed(offset ...int) T {
 	d.tick = true
-	return d.AppendFunc(func(e ElementInterface) any {
-		return stringutils.PadLeft(e.TimeElapsedString(), 5, ' ')
-	}, offset...)
+	return d.AppendFunc(timeElapsed, offset...)
 }
 
 // PrependElapsed prepends the time elapsed to the beginning of the indicator
 func (d *ProgressDefinition[T]) PrependElapsed(offset ...int) T {
 	d.tick = true
-	return d.PrependFunc(func(e ElementInterface) any {
-		return stringutils.PadLeft(e.TimeElapsedString(), 5, ' ')
-	}, offset...)
+	return d.PrependFunc(timeElapsed, offset...)
 }
 
 // AppendMessage appends text to the progress indicator
@@ -167,6 +168,14 @@ func (d *ProgressDefinition[T]) AppendMessage(m string, offset ...int) T {
 // PrependMessage prepends text to the beginning of the indicator
 func (d *ProgressDefinition[T]) PrependMessage(m string, offset ...int) T {
 	return d.PrependFunc(Message(m), offset...)
+}
+
+func timeElapsed(e ElementState) any {
+	var s string
+	if e.IsStarted() {
+		s = PrettyTime(e.TimeElapsed())
+	}
+	return stringutils.PadLeft(s, 5, ' ')
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -221,6 +230,8 @@ type ProgressSpecification[T any] interface {
 
 	// PrependMessage prepends text to the beginning of the indicator
 	PrependMessage(m string, offset ...int) T
+
+	setTick(b bool)
 }
 
 // ProgressConfiguration provides access to the generic Progress configuration
@@ -244,8 +255,8 @@ func TransferProgressConfig[D ProgressSpecification[T], T any](d D, c ProgressCo
 		d.AppendDecorator(e)
 	}
 	d.SetColor(c.GetColor())
-	d.SetFinal(c.GetFinal())
-	return d
+	d.setTick(c.GetTick())
+	return TransferElementConfig(d, c)
 }
 
 type Prepender interface {
@@ -258,7 +269,7 @@ type Appender interface {
 	AppendDecorator2(f DecoratorDefinition, offset ...int)
 }
 
-func AppendFunc[T ElementInterface](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
+func AppendFunc[T Element](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
 	if a, ok := types.Unwrap(d).(Appender); ok {
 		a.AppendFunc2(f, offset...)
 		return true
@@ -266,7 +277,7 @@ func AppendFunc[T ElementInterface](d types.ElementDefinition[T], f DecoratorFun
 	return false
 }
 
-func PrependFunc[T ElementInterface](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
+func PrependFunc[T Element](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
 	if a, ok := types.Unwrap(d).(Prepender); ok {
 		a.PrependFunc2(f, offset...)
 		return true

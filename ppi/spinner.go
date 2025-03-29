@@ -1,23 +1,27 @@
 package ppi
 
 import (
-	"sync"
-
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
 
 var SpinnerTypes = specs.SpinnerTypes
 
-type SpinnerBaseInterface interface {
+type SpinnerInterface interface {
 	ProgressInterface
 }
 
-type SpinnerBase[P ProgressInterface] struct {
-	*ProgressBase[P]
+type SpinnerImpl interface {
+	ProgressImpl
+}
 
-	lock sync.Mutex
-	self Self[P, ProgressProtected[P]]
+type SpinnerBase[P SpinnerImpl] struct {
+	*ProgressBase[P]
+	elem *SpinnerBaseImpl[P]
+}
+
+type SpinnerBaseImpl[P SpinnerImpl] struct {
+	*ProgressBaseImpl[P]
 
 	// pending is the message shown before started
 	pending string
@@ -25,50 +29,46 @@ type SpinnerBase[P ProgressInterface] struct {
 	// done is the message shown after closed
 	done string
 
-	spped *specs.Speed
+	speed *specs.Speed
 
 	phases specs.Phases
 }
 
-var _ SpinnerBaseInterface = (*SpinnerBase[ProgressInterface])(nil)
+var _ SpinnerInterface = (*SpinnerBaseImpl[SpinnerImpl])(nil)
 
-func NewSpinnerBase[T ProgressInterface](self Self[T, ProgressProtected[T]], p Container, c specs.SpinnerConfiguration, view int, closer func()) (*SpinnerBase[T], error) {
-	e := &SpinnerBase[T]{
-		self:    self,
+func NewSpinnerBase[T SpinnerImpl](self Self[T, any], p Container, c specs.SpinnerConfiguration, view int, closer func()) (*SpinnerBase[T], *SpinnerBaseImpl[T], error) {
+	e := &SpinnerBaseImpl[T]{
 		phases:  c.GetPhases(),
 		done:    c.GetDone(),
 		pending: c.GetPending(),
-		spped:   specs.NewSpeed(c.GetSpeed()),
+		speed:   specs.NewSpeed(c.GetSpeed()),
 	}
-	b, err := NewProgressBase[T](self, p, c, view, closer, true)
+	b, s, err := NewProgressBase[T](self, p, c, view, closer, true)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	e.ProgressBase = b
-	return e, nil
+	e.ProgressBaseImpl = s
+	return &SpinnerBase[T]{b, e}, e, nil
 }
 
-func Visualize[T ProgressInterface](s *SpinnerBase[T]) (ttycolors.String, bool) {
-	if s.self.Self().IsClosed() {
+func (s *SpinnerBaseImpl[T]) Visualize() (ttycolors.String, bool) {
+	if s.Protected().IsClosed() {
 		return specs.String(s.done), true
 	}
-	if !s.self.Self().IsStarted() {
+	if !s.Protected().IsStarted() {
 		return specs.String(s.pending), false
 	}
 	return s.phases.Get(), false
 }
 
-func (s *SpinnerBase[T]) Tick() bool {
-	if s.self == nil || s.self.Self().IsClosed() {
+func (s *SpinnerBaseImpl[T]) Tick() bool {
+	if s.Protected().IsClosed() {
 		return false
 	}
-	s.lock.Lock()
-	if !s.spped.Tick() {
-		s.lock.Unlock()
+	if !s.speed.Tick() {
 		return false
 
 	}
 	s.phases.Incr()
-	s.lock.Unlock()
-	return s.self.Protected().Update()
+	return s.Protected().Update()
 }

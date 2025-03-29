@@ -12,23 +12,29 @@ import (
 // featuring a concrete progress information line.
 type ProgressInterface = specs.ProgressInterface
 
-////////////////////////////////////////////////////////////////////////////////
-
-// ProgressProtected in the (protected) implementation interface for progress
-// indicators.
-type ProgressProtected[I any] interface {
-	ElementProtected[I]
-	Visualize() (ttycolors.String, bool)
-}
-
-func ProgressSelf[I ProgressInterface](impl ProgressProtected[I]) Self[I, ProgressProtected[I]] {
-	return NewSelf[I, ProgressProtected[I]](impl)
+type ProgressImpl interface {
+	ElementImpl
+	specs.ProgressInterface
+	Tick() bool
+	/* abstract protected */ Visualize() (ttycolors.String, bool)
 }
 
 // ProgressBase is a base implementation for elements providing
 // a line for progress information.
-type ProgressBase[T ProgressInterface] struct {
-	*ElemBase[T, ProgressProtected[T]]
+type ProgressBase[T ProgressImpl] struct {
+	*ElemBase[T]
+	// synchronized
+	elem *ProgressBaseImpl[T]
+}
+
+func (b *ProgressBase[T]) Tick() bool {
+	b.elem.lock.RLock()
+	defer b.elem.lock.RUnlock()
+	return b.elem.Protected().Tick()
+}
+
+type ProgressBaseImpl[T ProgressImpl] struct {
+	*ElemBaseImpl[T]
 
 	format            ttycolors.Format
 	progressFormat    ttycolors.Format
@@ -38,20 +44,22 @@ type ProgressBase[T ProgressInterface] struct {
 	tickers           []types.Ticker
 }
 
-func NewProgressBase[T ProgressInterface](self Self[T, ProgressProtected[T]], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], error) {
-	e := &ProgressBase[T]{tick: general.Optional(tick...)}
+var _ ElementImpl = (*ProgressBaseImpl[ProgressImpl])(nil)
+
+func NewProgressBase[T ProgressImpl](self Self[T, any], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], *ProgressBaseImpl[T], error) {
+	e := &ProgressBaseImpl[T]{tick: general.Optional(tick...)}
 	e.format = c.GetColor()
 	e.progressFormat = c.GetProgressColor()
 
 	for _, def := range c.GetPrependDecorators() {
-		d := def.CreateDecorator(self.Self())
+		d := def.CreateDecorator(self.Protected())
 		if t, ok := generics.UnwrapUntil[types.Ticker](d); ok {
 			e.tickers = append(e.tickers, t)
 		}
 		e.prependDecorators = append(e.prependDecorators, d)
 	}
 	for _, def := range c.GetAppendDecorators() {
-		d := def.CreateDecorator(self.Self())
+		d := def.CreateDecorator(self.Protected())
 		if t, ok := generics.UnwrapUntil[types.Ticker](d); ok {
 			e.tickers = append(e.tickers, t)
 		}
@@ -60,30 +68,27 @@ func NewProgressBase[T ProgressInterface](self Self[T, ProgressProtected[T]], p 
 	if len(e.tickers) > 0 {
 		e.tick = true
 	}
-	b, err := NewElemBase[T, ProgressProtected[T]](self, p, c, view, closer)
+	b, s, err := NewElemBase[T](self, p, c, view, closer)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	e.ElemBase = b
+	e.ElemBaseImpl = s
 	e.tick = general.OptionalDefaulted(c.GetTick(), tick...)
-	return e, nil
+	return &ProgressBase[T]{b, e}, e, nil
 }
 
-func (b *ProgressBase[T]) Tick() bool {
+func (b *ProgressBaseImpl[T]) Tick() bool {
 	if b.tick && !b.closed && b.IsStarted() {
 		upd := false
 		for _, t := range b.tickers {
 			upd = t.Tick() || upd
 		}
-		return b.self.Protected().Update() || upd
+		return b.Protected().Update() || upd
 	}
 	return false
 }
 
-func (b *ProgressBase[T]) Line() (string, bool) {
-	b.Lock.RLock()
-	defer b.Lock.RUnlock()
-
+func (b *ProgressBaseImpl[T]) Line() (string, bool) {
 	seq := make([]any, 0, 30)
 	sep := false
 
@@ -96,7 +101,7 @@ func (b *ProgressBase[T]) Line() (string, bool) {
 		sep = true
 	}
 
-	data, done := b.self.Protected().Visualize()
+	data, done := b.Protected().Visualize()
 	// render main function
 	if data != nil {
 		if sep {
@@ -125,7 +130,7 @@ func (b *ProgressBase[T]) Line() (string, bool) {
 	return b.String(seq...).String(), done
 }
 
-func Update[T ProgressInterface](b *ProgressBase[T]) bool {
+func (b *ProgressBaseImpl[T]) Update() bool {
 	line, done := b.Line()
 
 	b.block.Reset()
@@ -134,9 +139,4 @@ func Update[T ProgressInterface](b *ProgressBase[T]) bool {
 		b.Close()
 	}
 	return true
-}
-
-func (b *ProgressBase[T]) Flush() error {
-	b.self.Protected().Update()
-	return b.block.Flush()
 }

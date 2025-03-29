@@ -1,7 +1,6 @@
 package ttyprogress
 
 import (
-	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -26,7 +25,7 @@ func NewSpinner(set ...int) *SpinnerDefinition {
 }
 
 func (d *SpinnerDefinition) GetGroupNotifier() specs.GroupNotifier[Spinner] {
-	return &specs.DummyGroupNotifier[Spinner]{}
+	return &specs.VoidGroupNotifier[Spinner]{}
 }
 
 func (d *SpinnerDefinition) Dup() *SpinnerDefinition {
@@ -42,47 +41,25 @@ func (d *SpinnerDefinition) Add(c Container) (Spinner, error) {
 ////////////////////////////////////////////////////////////////////////////////
 
 type _Spinner struct {
-	*ppi.SpinnerBase[Spinner]
+	*ppi.SpinnerBase[*_SpinnerImpl]
+	elem *_SpinnerImpl
+}
+
+type _SpinnerImpl struct {
+	*ppi.SpinnerBaseImpl[*_SpinnerImpl]
 	closed bool
-}
-
-type _spinnerProtected struct {
-	*_Spinner
-}
-
-func (s *_spinnerProtected) Self() Spinner {
-	return s._Spinner
-}
-
-func (s *_spinnerProtected) Update() bool {
-	return s._update()
-}
-
-func (s *_spinnerProtected) Visualize() (ttycolors.String, bool) {
-	return s._visualize()
 }
 
 // newSpinner creates a Spinner with a predefined
 // set of spinner phases taken from SpinnerTypes.
 func newSpinner(p Container, c specs.SpinnerConfiguration) (Spinner, error) {
-	e := &_Spinner{}
-	self := ppi.ProgressSelf[Spinner](&_spinnerProtected{e})
-	b, err := ppi.NewSpinnerBase[Spinner](self, p, c, 1, nil)
+	e := &_SpinnerImpl{}
+	o := &_Spinner{elem: e}
+	b, s, err := ppi.NewSpinnerBase[*_SpinnerImpl](ppi.NewSelf[*_SpinnerImpl, any](e, o), p, c, 1, nil)
 	if err != nil {
 		return nil, err
 	}
-	e.SpinnerBase = b
-	return e, nil
-}
-
-func (s *_Spinner) finalize() {
-	s._update()
-}
-
-func (s *_Spinner) _update() bool {
-	return ppi.Update(s.ProgressBase)
-}
-
-func (s *_Spinner) _visualize() (ttycolors.String, bool) {
-	return ppi.Visualize(s.SpinnerBase)
+	e.SpinnerBaseImpl = s
+	o.SpinnerBase = b
+	return o, nil
 }

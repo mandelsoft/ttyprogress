@@ -2,7 +2,6 @@ package ttyprogress
 
 import (
 	"github.com/mandelsoft/goutils/stringutils"
-	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -35,44 +34,40 @@ func (d *StepsDefinition) Add(c Container) (Steps, error) {
 ////////////////////////////////////////////////////////////////////////////////
 
 type _Steps struct {
-	*_Bar[Steps]
+	*IntBarBase[*_StepsImpl]
+	elem *_StepsImpl
+}
+
+func (s *_Steps) GetCurrentStep() string {
+	defer s.elem.Lock()()
+
+	return s.elem.Protected().GetCurrentStep()
+}
+
+type _StepsImpl struct {
+	*IntBarBaseImpl[*_StepsImpl]
 	steps []string
-}
-
-type _stepsProtected struct {
-	*_Steps
-}
-
-func (b *_stepsProtected) Self() Steps {
-	return b._Steps
-}
-
-func (b *_stepsProtected) Update() bool {
-	return b._update()
-}
-
-func (b *_stepsProtected) Visualize() (ttycolors.String, bool) {
-	return b._visualize()
 }
 
 // NewSteps create a Steps progress information for a given
 // list of sequential steps.
 func newSteps(p Container, c specs.StepsConfiguration) (Steps, error) {
 	steps := stringutils.AlignLeft(c.GetSteps(), ' ')
-	e := &_Steps{steps: steps}
+	e := &_StepsImpl{steps: steps}
+	o := &_Steps{elem: e}
 
-	b, err := newBarBase[Steps](p, c, len(steps), func(*_Bar[Steps]) ppi.Self[Steps, ppi.ProgressProtected[Steps]] {
-		return ppi.ProgressSelf[Steps](&_stepsProtected{e})
+	b, s, err := newIntBar[*_StepsImpl](p, c, len(steps), func(*IntBarBaseImpl[*_StepsImpl], *IntBarBase[*_StepsImpl]) ppi.Self[*_StepsImpl, any] {
+		return ppi.NewSelf[*_StepsImpl, any](e, o)
 	})
-
 	if err != nil {
 		return nil, err
 	}
-	e._Bar = b
-	return e, nil
+	e.IntBarBaseImpl = s
+	o.IntBarBase = b
+	return o, nil
 }
 
-func (s *_Steps) GetCurrentStep() string {
+func (s *_StepsImpl) GetCurrentStep() string {
 	c := s.Current()
 	if c == 0 && !s.IsStarted() {
 		return stringutils.PadRight("", len(s.steps[0]), ' ')

@@ -45,47 +45,47 @@ func (d *TextDefinition) Add(c Container) (Text, error) {
 ////////////////////////////////////////////////////////////////////////////////
 
 type _Text struct {
-	*ppi.ElemBase[Text, *_textProtected]
+	*ppi.ElemBase[*_TextImpl]
+	elem *_TextImpl
 }
 
-type _textProtected struct {
-	*_Text
+func (t *_Text) Write(data []byte) (int, error) {
+	defer t.elem.Lock()()
+
+	return t.elem.Protected().Write(data)
 }
 
-func (t *_textProtected) Self() Text {
-	return t._Text
-}
-
-func (t *_textProtected) Update() bool {
-	return t._update()
+type _TextImpl struct {
+	*ppi.ElemBaseImpl[*_TextImpl]
 }
 
 // NewText creates a new text stream with the given window size.
 // With Text.SetAuto updates are triggered by the Text.Write calls.
 // Otherwise, Text.Flush must be called to update the text window.
 func newText(p Container, c specs.TextConfiguration) (Text, error) {
-	e := &_Text{}
+	e := &_TextImpl{}
+	o := &_Text{elem: e}
 
-	self := ppi.ElementSelf[Text](&_textProtected{e})
-	b, err := ppi.NewElemBase[Text](self, p, c, c.GetView())
+	b, s, err := ppi.NewElemBase[*_TextImpl](ppi.NewSelf[*_TextImpl, any](e, o), p, c, c.GetView())
 	if err != nil {
 		return nil, err
 	}
-	e.ElemBase = b
+	e.ElemBaseImpl = s
+	o.ElemBase = b
 	if c.GetAuto() {
-		b.Block().SetAuto()
+		e.Block().SetAuto()
 	}
-	return e, nil
+	return o, nil
 }
 
-func (t *_Text) _update() bool {
+func (t *_TextImpl) Update() bool {
 	return false
 }
 
-func (t *_Text) Flush() error {
+func (t *_TextImpl) Flush() error {
 	return t.Block().Flush()
 }
 
-func (t *_Text) Write(data []byte) (int, error) {
+func (t *_TextImpl) Write(data []byte) (int, error) {
 	return t.Block().Write(data)
 }

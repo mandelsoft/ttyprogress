@@ -203,6 +203,9 @@ func (w *Block) Next() *Block {
 
 func (w *Block) Reset() {
 	defer w.lock()()
+	if w.closed {
+		return
+	}
 	w.startline = true
 	w.buf.Reset()
 }

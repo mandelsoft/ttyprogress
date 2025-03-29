@@ -11,18 +11,15 @@ import (
 	"github.com/mandelsoft/ttyprogress/blocks"
 	"github.com/mandelsoft/ttyprogress/specs"
 	"github.com/mandelsoft/ttyprogress/synclog"
+	"github.com/mandelsoft/ttyprogress/types"
 )
 
-// ElementInterface in the public interface of elements.
-type ElementInterface = specs.ElementInterface
+// Element in the public interface of elements.
+type Element = types.Element
 
-type ElementProtected[I any] interface {
-	Protected[I]
-	Update() bool
-}
-
-func ElementSelf[I ElementInterface, P ElementProtected[I]](p P) Self[I, P] {
-	return NewSelf[I, P](p)
+type ElementImpl interface {
+	Element
+	/* abstract protected */ Update() bool
 }
 
 type (
@@ -33,10 +30,79 @@ type (
 	FollowupGapProvider = specs.FollowupGapProvider
 )
 
-type ElemBase[I ElementInterface, P ElementProtected[I]] struct {
-	Lock synclog.RWMutex
+type ElemBase[I ElementImpl] struct {
+	elem *ElemBaseImpl[I]
+}
 
-	self Self[I, P]
+func (b *ElemBase[I]) IsStarted() bool {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().IsStarted()
+}
+
+func (b *ElemBase[I]) IsClosed() bool {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().IsClosed()
+}
+
+func (b *ElemBase[I]) Start() {
+	defer b.elem.Lock()()
+
+	b.elem.Protected().Start()
+}
+
+func (b *ElemBase[I]) IsFinished() bool {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().IsFinished()
+}
+
+func (b *ElemBase[I]) Close() error {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().Close()
+}
+
+func (b *ElemBase[I]) Hide(f ...bool) {
+	defer b.elem.Lock()()
+
+	b.elem.Protected().Hide(f...)
+}
+
+func (b *ElemBase[I]) SetFinal(m string) {
+	defer b.elem.Lock()()
+
+	b.elem.Protected().SetFinal(m)
+}
+
+func (b *ElemBase[I]) Flush() error {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().Flush()
+}
+
+func (b *ElemBase[I]) Wait(ctx context.Context) error {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().Wait(ctx)
+}
+
+func (b *ElemBase[I]) TimeElapsed() time.Duration {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().TimeElapsed()
+}
+
+func (b *ElemBase[I]) Update() bool {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().Update()
+}
+
+type ElemBaseImpl[I ElementImpl] struct {
+	lock synclog.RWMutex
+	self Self[I, any]
 
 	block  *blocks.Block
 	closer func()
@@ -48,14 +114,16 @@ type ElemBase[I ElementInterface, P ElementProtected[I]] struct {
 	closed bool
 }
 
-func NewElemBase[I ElementInterface, P ElementProtected[I]](self Self[I, P], p Container, c specs.ElementConfiguration, view int, closer ...func()) (*ElemBase[I, P], error) {
+// var _ ElementImpl = (*ElemBaseImpl[ElementImpl])(nil)
+
+func NewElemBase[I ElementImpl](self Self[I, any], p Container, c specs.ElementConfiguration, view int, closer ...func()) (*ElemBase[I], *ElemBaseImpl[I], error) {
 	if view <= 0 {
 		view = 1
 	}
 
 	b := blocks.NewBlock(view)
 
-	e := &ElemBase[I, P]{Lock: synclog.NewRWMutex(generics.TypeOf[I]().String()), self: self, block: b, closer: general.Optional(closer...)}
+	e := &ElemBaseImpl[I]{lock: synclog.NewRWMutex(generics.TypeOf[I]().String()), self: self, block: b, closer: general.Optional(closer...)}
 
 	b.SetPayload(self.Self())
 	if c.GetFinal() != "" {
@@ -88,53 +156,65 @@ func NewElemBase[I ElementInterface, P ElementProtected[I]](self Self[I, P], p C
 	}
 
 	if err := p.AddBlock(b); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return e, nil
+	return &ElemBase[I]{e}, e, nil
 }
 
-func (b *ElemBase[I, P]) HideOnClose(f ...bool) {
+func (b *ElemBaseImpl[I]) Protected() I {
+	return b.self.Protected()
+}
+
+func (b *ElemBaseImpl[I]) Lock() func() {
+	b.lock.Lock()
+	return b.lock.Unlock
+}
+
+func (b *ElemBaseImpl[I]) RLock() func() {
+	b.lock.RLock()
+	return b.lock.RUnlock
+}
+
+func (b *ElemBaseImpl[I]) HideOnClose(f ...bool) {
 	b.block.HideOnClose(f...)
 }
 
-func (b *ElemBase[I, P]) IsHideOnClose() bool {
+func (b *ElemBaseImpl[I]) IsHideOnClose() bool {
 	return b.block.IsHideOnClose()
 }
 
-func (b *ElemBase[I, P]) Hide(f ...bool) {
+func (b *ElemBaseImpl[I]) Hide(f ...bool) {
 	b.block.Hide(f...)
 }
 
-func (b *ElemBase[I, P]) IsHidden() bool {
+func (b *ElemBaseImpl[I]) IsHidden() bool {
 	return b.block.IsHidden()
 }
 
-func (b *ElemBase[I, P]) SetFinal(m string) {
+func (b *ElemBaseImpl[I]) SetFinal(m string) {
 	b.block.SetFinal(m)
 }
 
-func (b *ElemBase[I, P]) Block() *blocks.Block {
+func (b *ElemBaseImpl[I]) Block() *blocks.Block {
 	return b.block
 }
 
-func (b *ElemBase[I, P]) StringWith(f ttycolors.FormatProvider, seq ...any) ttycolors.String {
+func (b *ElemBaseImpl[I]) StringWith(f ttycolors.FormatProvider, seq ...any) ttycolors.String {
 	return b.block.Blocks().GetTTYGontext().StringWith(f, seq...)
 }
-func (b *ElemBase[I, P]) String(seq ...any) ttycolors.String {
+
+func (b *ElemBaseImpl[I]) String(seq ...any) ttycolors.String {
 	return b.block.Blocks().GetTTYGontext().String(seq...)
 }
 
-func (b *ElemBase[I, P]) Start() {
+func (b *ElemBaseImpl[I]) Start() {
 	if b.start() {
-		b.self.Protected().Update()
+		b.Protected().Update()
 		b.block.Flush()
 	}
 }
 
-func (b *ElemBase[I, P]) start() bool {
-	b.Lock.Lock()
-	defer b.Lock.Unlock()
-
+func (b *ElemBaseImpl[I]) start() bool {
 	var t time.Time
 	if b.closed || b.timeStarted != t {
 		return false
@@ -143,31 +223,25 @@ func (b *ElemBase[I, P]) start() bool {
 	return true
 }
 
-func (b *ElemBase[I, P]) IsStarted() bool {
-	b.Lock.RLock()
-	defer b.Lock.RUnlock()
-
+func (b *ElemBaseImpl[I]) IsStarted() bool {
 	var t time.Time
 	return b.timeStarted != t
 }
 
-func (b *ElemBase[I, P]) Close() error {
+func (b *ElemBaseImpl[I]) Close() error {
 	err := b.close()
 
 	if err == nil {
 		if b.closer != nil {
 			b.closer()
 		}
-		b.self.Protected().Update()
+		b.Protected().Update()
 		b.block.Close()
 	}
 	return err
 }
 
-func (b *ElemBase[I, P]) close() error {
-	b.Lock.Lock()
-	defer b.Lock.Unlock()
-
+func (b *ElemBaseImpl[I]) close() error {
 	if b.closed {
 		return os.ErrClosed
 	}
@@ -176,48 +250,30 @@ func (b *ElemBase[I, P]) close() error {
 	return nil
 }
 
-func (b *ElemBase[I, P]) IsClosed() bool {
-	b.Lock.RLock()
-	defer b.Lock.RUnlock()
-
+func (b *ElemBaseImpl[I]) IsClosed() bool {
 	return b.closed
 }
 
-func (b *ElemBase[I, P]) Wait(ctx context.Context) error {
+func (b *ElemBaseImpl[I]) IsFinished() bool {
+	return b.closed
+}
+
+func (b *ElemBaseImpl[I]) Flush() error {
+	b.Protected().Update()
+	return b.block.Flush()
+}
+
+func (b *ElemBaseImpl[I]) Wait(ctx context.Context) error {
 	return b.block.Wait(ctx)
 }
 
 // TimeElapsed returns the time elapsed
-func (b *ElemBase[I, P]) TimeElapsed() time.Duration {
+func (b *ElemBaseImpl[I]) TimeElapsed() time.Duration {
 	if !b.IsStarted() {
 		return 0
 	}
-	b.Lock.RLock()
-	defer b.Lock.RUnlock()
-
 	if b.closed {
 		return b.timeElapsed
 	}
 	return time.Since(b.timeStarted)
-}
-
-// TimeElapsedString returns the formatted string representation of the time elapsed
-func (b *ElemBase[I, P]) TimeElapsedString() string {
-	if b.IsStarted() {
-		return specs.PrettyTime(b.TimeElapsed())
-	}
-	return ""
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-type ElementLocker interface {
-	RLock() RLockedElement
-	Lock() LockedElement
-}
-
-type LockedElement interface {
-}
-
-type RLockedElement interface {
 }

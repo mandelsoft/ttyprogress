@@ -38,7 +38,7 @@ func (d *EstimatedDefinition[T]) Dup(s Self[T]) EstimatedDefinition[T] {
 
 // PrependEstimated prepends the time elapsed to the beginning of the bar
 func (d *EstimatedDefinition[T]) PrependEstimated(offset ...int) T {
-	d.PrependFunc(func(e ElementInterface) any {
+	d.PrependFunc(func(e ElementState) any {
 		return estimatedTime(e)
 	}, offset...)
 	return d.Self()
@@ -46,7 +46,7 @@ func (d *EstimatedDefinition[T]) PrependEstimated(offset ...int) T {
 
 // AppendEstimated appends the time elapsed to the beginning of the bar
 func (d *EstimatedDefinition[T]) AppendEstimated(offset ...int) T {
-	d.AppendFunc(func(e ElementInterface) any {
+	d.AppendFunc(func(e ElementState) any {
 		return estimatedTime(e)
 	}, offset...)
 	return d.Self()
@@ -63,7 +63,7 @@ func (d *EstimatedDefinition[T]) GetTotal() time.Duration {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func estimatedTime(e ElementInterface) string {
+func estimatedTime(e ElementState) string {
 	s := ""
 	if e.IsStarted() {
 		p := e.(EstimatedInterface)

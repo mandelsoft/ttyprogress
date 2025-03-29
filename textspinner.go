@@ -1,7 +1,6 @@
 package ttyprogress
 
 import (
-	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -36,51 +35,47 @@ func (d *TextSpinnerDefinition) Add(c Container) (TextSpinner, error) {
 ////////////////////////////////////////////////////////////////////////////////
 
 type _TextSpinner struct {
-	*ppi.SpinnerBase[TextSpinner]
+	*ppi.SpinnerBase[*_TextSpinnerImpl]
+	elem *_TextSpinnerImpl
+}
+
+func (b *_TextSpinner) Write(data []byte) (int, error) {
+	defer b.elem.Lock()()
+
+	return b.elem.Protected().Write(data)
+}
+
+type _TextSpinnerImpl struct {
+	*ppi.SpinnerBaseImpl[*_TextSpinnerImpl]
 	closed bool
 }
 
 type _textSpinnerProtected struct {
-	*_TextSpinner
-}
-
-func (t *_textSpinnerProtected) Self() TextSpinner {
-	return t._TextSpinner
-}
-
-func (t *_textSpinnerProtected) Update() bool {
-	return t._update()
-}
-
-func (t *_textSpinnerProtected) Visualize() (ttycolors.String, bool) {
-	return t._visualize()
+	*_TextSpinnerImpl
 }
 
 // newTextSpinner creates  new TextSpinner with the given
 // window size. It can be used like a Text element.
 func newTextSpinner(p Container, c specs.TextSpinnerConfiguration) (TextSpinner, error) {
-	e := &_TextSpinner{}
+	e := &_TextSpinnerImpl{}
+	o := &_TextSpinner{elem: e}
 
-	self := ppi.ProgressSelf[TextSpinner](&_textSpinnerProtected{e})
-	b, err := ppi.NewSpinnerBase[TextSpinner](self, p, c, c.GetView(), nil)
+	b, s, err := ppi.NewSpinnerBase[*_TextSpinnerImpl](ppi.NewSelf[*_TextSpinnerImpl, any](e, o), p, c, c.GetView(), nil)
 	if err != nil {
 		return nil, err
 	}
-	e.SpinnerBase = b
-	return e, nil
+	e.SpinnerBaseImpl = s
+	o.SpinnerBase = b
+	return o, nil
 }
 
-func (b *_TextSpinner) Write(data []byte) (int, error) {
+func (b *_TextSpinnerImpl) Write(data []byte) (int, error) {
 	b.Start()
 	return b.Block().Write(data)
 }
 
-func (s *_TextSpinner) _update() bool {
+func (s *_TextSpinnerImpl) Update() bool {
 	line, _ := s.Line()
 	s.Block().SetTitleLine(line)
 	return true
-}
-
-func (s *_TextSpinner) _visualize() (ttycolors.String, bool) {
-	return ppi.Visualize(s.SpinnerBase)
 }
