@@ -27,6 +27,8 @@ github.com/mandelsoft/filepath v0.0.0-20240223090642-3e2777258aa3 h1:oo9nIgnyiBg
 github.com/mandelsoft/filepath v0.0.0-20240223090642-3e2777258aa3/go.mod h1:LxhqC7khDoRENwooP6f/vWvia9ivj6TqLYrR39zqkN0=
 github.com/mandelsoft/goutils v0.0.0-20250323093506-2cf95092ca48 h1:TJ7MrrGBfHpKh/POss0Fkuh44RAi2vtGYsnsuiQIHS8=
 github.com/mandelsoft/goutils v0.0.0-20250323093506-2cf95092ca48/go.mod h1:UeYhFI0gRoiTcmZH7VD/Oy5dYz4O8vyOv5tsiBTEUPo=
+github.com/mandelsoft/object v0.0.0-20250404172943-aebadf685b61 h1:itxmProWS3tgyJtcv6dr44tH2l8OG4nDnBtbA6Dbl38=
+github.com/mandelsoft/object v0.0.0-20250404172943-aebadf685b61/go.mod h1:6r2b3Q/H3tnX4PtmtPgug0ZEStZa14l+zQDVxlEKiDg=
 github.com/mandelsoft/ttycolors v0.0.0-20250328124755-a527e5544759 h1:QFM9Yj+goBi1mVKF21dQSIOXLoZ+ppH6h7tp1Ovt5pg=
 github.com/mandelsoft/ttycolors v0.0.0-20250328124755-a527e5544759/go.mod h1:FfNH6mYAL4ZRmml11w8f0dRQuFIBFpKh/JK1UUvEuKA=
 github.com/mandelsoft/vfs v0.4.3 h1:2UMrxQkMXkcHyuqSFhgFDupQ1fmqpKLZuu04DOHx1PA=

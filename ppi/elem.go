@@ -7,6 +7,7 @@ import (
 
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/generics"
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/blocks"
 	"github.com/mandelsoft/ttyprogress/specs"
@@ -102,7 +103,7 @@ func (b *ElemBase[I]) Update() bool {
 
 type ElemBaseImpl[I ElementImpl] struct {
 	lock synclog.RWMutex
-	self Self[I, any]
+	self object.Self[I, any]
 
 	block  *blocks.Block
 	closer func()
@@ -116,7 +117,7 @@ type ElemBaseImpl[I ElementImpl] struct {
 
 // var _ ElementImpl = (*ElemBaseImpl[ElementImpl])(nil)
 
-func NewElemBase[I ElementImpl](self Self[I, any], p Container, c specs.ElementConfiguration, view int, closer ...func()) (*ElemBase[I], *ElemBaseImpl[I], error) {
+func NewElemBase[I ElementImpl](self object.Self[I, any], p Container, c specs.ElementConfiguration, view int, closer ...func()) (*ElemBase[I], *ElemBaseImpl[I], error) {
 	if view <= 0 {
 		view = 1
 	}

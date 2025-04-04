@@ -14,6 +14,8 @@ import (
 	"github.com/mandelsoft/ttycolors"
 )
 
+const MIN_UPDATE_INTERVAL = 10 * time.Millisecond
+
 // Blocks is a sequences of Block/s which represent a trailing range of
 // lines on a terminal output given by am output steam. The stream is written to
 // update the covered terminal lines with the actual context of the included
@@ -101,7 +103,7 @@ func (w *Blocks) listen() {
 			close(w.done)
 			return
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(MIN_UPDATE_INTERVAL)
 	}
 }
 

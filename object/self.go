@@ -1,4 +1,4 @@
-package ppi
+package object
 
 // Self represents the effective object,
 // the extended self passed to some kind of

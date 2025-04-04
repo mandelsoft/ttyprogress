@@ -11,7 +11,7 @@ visualized as indicators, also.
 
 The following indicators are directly supported by the library:
 - [Simple Spinners](#spinner)
-- [Scrolling Text Spinners](#scrolling-text-spinner)
+- [Scrolling Text Spinners](#scrolling-text-spinners)
 - [Progress bars](#progress-bar)
 - [Progress bars for estimated remaining time](#progress-bar-for-estimated-total-time) 
 - [Step lists](#progress-bar-for-steps)

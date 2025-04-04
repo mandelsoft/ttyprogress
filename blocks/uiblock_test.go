@@ -2,6 +2,7 @@ package blocks_test
 
 import (
 	"bytes"
+	"time"
 
 	. "github.com/mandelsoft/goutils/testutils"
 	. "github.com/onsi/ginkgo/v2"
@@ -26,6 +27,7 @@ var _ = Describe("Blocks Test Environment", func() {
 		MustBeSuccessful(blks.AddBlock(b))
 		ExpectError(blks.AddBlock(b)).To(Equal(blocks.ErrAlreadyAssigned))
 		MustBeSuccessful(blks.Flush())
+		time.Sleep(blocks.MIN_UPDATE_INTERVAL * 2)
 		Expect(buf.String()).To(Equal("test\n"))
 	})
 })

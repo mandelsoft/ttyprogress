@@ -3,6 +3,7 @@ package ppi
 import (
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/generics"
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/specs"
 	"github.com/mandelsoft/ttyprogress/types"
@@ -46,7 +47,7 @@ type ProgressBaseImpl[T ProgressImpl] struct {
 
 var _ ElementImpl = (*ProgressBaseImpl[ProgressImpl])(nil)
 
-func NewProgressBase[T ProgressImpl](self Self[T, any], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], *ProgressBaseImpl[T], error) {
+func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], *ProgressBaseImpl[T], error) {
 	e := &ProgressBaseImpl[T]{tick: general.Optional(tick...)}
 	e.format = c.GetColor()
 	e.progressFormat = c.GetProgressColor()

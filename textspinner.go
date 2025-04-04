@@ -1,6 +1,7 @@
 package ttyprogress
 
 import (
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -60,7 +61,7 @@ func newTextSpinner(p Container, c specs.TextSpinnerConfiguration) (TextSpinner,
 	e := &_TextSpinnerImpl{}
 	o := &_TextSpinner{elem: e}
 
-	b, s, err := ppi.NewSpinnerBase[*_TextSpinnerImpl](ppi.NewSelf[*_TextSpinnerImpl, any](e, o), p, c, c.GetView(), nil)
+	b, s, err := ppi.NewSpinnerBase[*_TextSpinnerImpl](object.NewSelf[*_TextSpinnerImpl, any](e, o), p, c, c.GetView(), nil)
 	if err != nil {
 		return nil, err
 	}

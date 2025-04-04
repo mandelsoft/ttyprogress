@@ -1,6 +1,7 @@
 package ppi
 
 import (
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -36,7 +37,7 @@ type SpinnerBaseImpl[P SpinnerImpl] struct {
 
 var _ SpinnerInterface = (*SpinnerBaseImpl[SpinnerImpl])(nil)
 
-func NewSpinnerBase[T SpinnerImpl](self Self[T, any], p Container, c specs.SpinnerConfiguration, view int, closer func()) (*SpinnerBase[T], *SpinnerBaseImpl[T], error) {
+func NewSpinnerBase[T SpinnerImpl](self object.Self[T, any], p Container, c specs.SpinnerConfiguration, view int, closer func()) (*SpinnerBase[T], *SpinnerBaseImpl[T], error) {
 	e := &SpinnerBaseImpl[T]{
 		phases:  c.GetPhases(),
 		done:    c.GetDone(),

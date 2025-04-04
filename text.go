@@ -2,6 +2,7 @@ package ttyprogress
 
 import (
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -66,7 +67,7 @@ func newText(p Container, c specs.TextConfiguration) (Text, error) {
 	e := &_TextImpl{}
 	o := &_Text{elem: e}
 
-	b, s, err := ppi.NewElemBase[*_TextImpl](ppi.NewSelf[*_TextImpl, any](e, o), p, c, c.GetView())
+	b, s, err := ppi.NewElemBase[*_TextImpl](object.NewSelf[*_TextImpl, any](e, o), p, c, c.GetView())
 	if err != nil {
 		return nil, err
 	}

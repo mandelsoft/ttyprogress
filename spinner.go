@@ -1,6 +1,7 @@
 package ttyprogress
 
 import (
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -55,7 +56,7 @@ type _SpinnerImpl struct {
 func newSpinner(p Container, c specs.SpinnerConfiguration) (Spinner, error) {
 	e := &_SpinnerImpl{}
 	o := &_Spinner{elem: e}
-	b, s, err := ppi.NewSpinnerBase[*_SpinnerImpl](ppi.NewSelf[*_SpinnerImpl, any](e, o), p, c, 1, nil)
+	b, s, err := ppi.NewSpinnerBase[*_SpinnerImpl](object.NewSelf[*_SpinnerImpl, any](e, o), p, c, 1, nil)
 	if err != nil {
 		return nil, err
 	}

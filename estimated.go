@@ -3,6 +3,7 @@ package ttyprogress
 import (
 	"time"
 
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -76,7 +77,7 @@ func newEstimated(p Container, c specs.EstimatedConfiguration) (Estimated, error
 	e := &_EstimatedImpl{}
 	o := &_Estimated{elem: e}
 
-	b, s, err := ppi.NewBarBase[*_EstimatedImpl, time.Duration](ppi.NewSelf[*_EstimatedImpl, any](e, o), p, c, 1, e.closer, true)
+	b, s, err := ppi.NewBarBase[*_EstimatedImpl, time.Duration](object.NewSelf[*_EstimatedImpl, any](e, o), p, c, 1, e.closer, true)
 	if err != nil {
 		return nil, err
 	}

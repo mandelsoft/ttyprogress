@@ -2,7 +2,7 @@ package ttyprogress
 
 import (
 	"github.com/mandelsoft/goutils/stringutils"
-	"github.com/mandelsoft/ttyprogress/ppi"
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
 
@@ -56,8 +56,8 @@ func newSteps(p Container, c specs.StepsConfiguration) (Steps, error) {
 	e := &_StepsImpl{steps: steps}
 	o := &_Steps{elem: e}
 
-	b, s, err := newIntBar[*_StepsImpl](p, c, len(steps), func(*IntBarBaseImpl[*_StepsImpl], *IntBarBase[*_StepsImpl]) ppi.Self[*_StepsImpl, any] {
-		return ppi.NewSelf[*_StepsImpl, any](e, o)
+	b, s, err := newIntBar[*_StepsImpl](p, c, len(steps), func(*IntBarBaseImpl[*_StepsImpl], *IntBarBase[*_StepsImpl]) object.Self[*_StepsImpl, any] {
+		return object.NewSelf[*_StepsImpl, any](e, o)
 	})
 	if err != nil {
 		return nil, err

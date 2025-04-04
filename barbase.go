@@ -1,6 +1,7 @@
 package ttyprogress
 
 import (
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -76,7 +77,7 @@ type IntBarBaseImpl[T IntBarImpl] struct {
 	current int
 }
 
-func newIntBar[T IntBarImpl](p Container, c specs.BarBaseConfiguration, total int, self func(*IntBarBaseImpl[T], *IntBarBase[T]) ppi.Self[T, any]) (*IntBarBase[T], *IntBarBaseImpl[T], error) {
+func newIntBar[T IntBarImpl](p Container, c specs.BarBaseConfiguration, total int, self func(*IntBarBaseImpl[T], *IntBarBase[T]) object.Self[T, any]) (*IntBarBase[T], *IntBarBaseImpl[T], error) {
 	e := &IntBarBaseImpl[T]{}
 	o := &IntBarBase[T]{elem: e}
 

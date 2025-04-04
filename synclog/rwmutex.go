@@ -48,11 +48,7 @@ func (l *_RWMutex) Unlock() {
 
 func (l *_RWMutex) TryRLock() bool {
 	ok := l.lock.TryRLock()
-	if ok {
-		log("read locked rwmutex(%s)[%p](TryLock)#%d\n", l.name, l)
-	} else {
-		log("not read locked rwmutex(%s)[%p](TryLock)\n", l.name, l)
-	}
+	log("not read locked rwmutex(%s)[%p](TryLock)\n", l.name, l)
 	return ok
 }
 

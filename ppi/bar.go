@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -54,7 +55,7 @@ func (b *BarBaseImpl[T, V]) SetTotal(v V) {
 	b.total = v
 }
 
-func NewBarBase[T BarImpl[V], V any](self Self[T, any], p Container, c specs.BarBaseConfiguration, total V, closer func(), tick ...bool) (*BarBase[T, V], *BarBaseImpl[T, V], error) {
+func NewBarBase[T BarImpl[V], V any](self object.Self[T, any], p Container, c specs.BarBaseConfiguration, total V, closer func(), tick ...bool) (*BarBase[T, V], *BarBaseImpl[T, V], error) {
 	e := &BarBaseImpl[T, V]{
 		total:   total,
 		width:   c.GetWidth(),
