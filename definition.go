@@ -15,3 +15,17 @@ func New[T Dupper[T]](d Dupper[T]) T {
 func TypeFor[T Dupper[T]](d T) Dupper[T] {
 	return d.Dup()
 }
+
+// GenericDefinition converts a specific progress indicator definition
+// into a generic one (providing just an Element instead of the specific type).
+func GenericDefinition[T ElementDefinition[E], E Element](d T) ElementDefinition[Element] {
+	return &genericDefinition[E]{d}
+}
+
+type genericDefinition[E Element] struct {
+	def ElementDefinition[E]
+}
+
+func (d *genericDefinition[E]) Add(c Container) (Element, error) {
+	return d.def.Add(c)
+}
