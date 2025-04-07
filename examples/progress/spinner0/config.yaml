@@ -1,0 +1,4 @@
+config:
+  rows: 10
+  frameBox:
+    title: Spinner Indicators

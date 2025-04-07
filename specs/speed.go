@@ -4,21 +4,34 @@ import (
 	"time"
 )
 
-const Tick = time.Millisecond * 25
+const Tick = time.Millisecond * 20
 
 type Speed struct {
-	interval int64
-	passed   int64
+	interval time.Duration
+	last     time.Time
+	passed   time.Duration
 }
 
 func (t *Speed) SetSpeed(n int) {
-	t.interval = int64(Tick) * 4 * int64(n)
+	t.interval = Tick * 5 * time.Duration(n)
+}
+
+func (t *Speed) Tick1() bool {
+	t.passed += Tick
+
+	if t.interval <= t.passed {
+		t.passed -= t.interval
+		return true
+	}
+	return false
 }
 
 func (t *Speed) Tick() bool {
-	t.passed += int64(Tick)
-	if t.interval <= t.passed {
-		t.passed -= t.interval
+	now := time.Now()
+	diff := now.Sub(t.last)
+
+	if t.interval <= diff {
+		t.last = now
 		return true
 	}
 	return false

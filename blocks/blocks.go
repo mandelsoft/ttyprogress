@@ -95,7 +95,6 @@ func (w *Blocks) _flush() {
 }
 
 func (w *Blocks) listen() {
-
 	for {
 		err := w.request.Wait(w.ctx)
 		w._flush()
@@ -305,7 +304,6 @@ func (r *request) Request() {
 	if !r.pending {
 		r.pending = true
 		r.sema.Release(1)
-
 	}
 }
 
