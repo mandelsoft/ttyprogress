@@ -20,10 +20,17 @@ func String(s string) ttycolors.String {
 	return ttycolors.Sequence(s)
 }
 
-// Message provide a DecoratorFunc for a simple text message.
+// Message provides a DecoratorFunc for a simple text message.
 func Message(m string) DecoratorFunc {
 	return func(element ElementState) any {
 		return m
+	}
+}
+
+// Variable provides a DecoratorFunc for a variable of a progress indicator.
+func Variable(name string) DecoratorFunc {
+	return func(element ElementState) any {
+		return element.(VariableProvider).GetVariable(name)
 	}
 }
 

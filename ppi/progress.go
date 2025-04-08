@@ -28,6 +28,18 @@ type ProgressBase[T ProgressImpl] struct {
 	elem *ProgressBaseImpl[T]
 }
 
+func (b *ProgressBase[T]) SetVariable(name string, value any) {
+	b.elem.lock.Lock()
+	defer b.elem.lock.Unlock()
+	b.elem.Protected().SetVariable(name, value)
+}
+
+func (b *ProgressBase[T]) GetVariable(name string) any {
+	b.elem.lock.RLock()
+	defer b.elem.lock.RUnlock()
+	return b.elem.Protected().GetVariable(name)
+}
+
 func (b *ProgressBase[T]) Tick() bool {
 	b.elem.lock.RLock()
 	defer b.elem.lock.RUnlock()
@@ -41,14 +53,16 @@ type ProgressBaseImpl[T ProgressImpl] struct {
 	progressFormat    ttycolors.Format
 	appendDecorators  []types.Decorator
 	prependDecorators []types.Decorator
-	tick              bool
-	tickers           []types.Ticker
+	variables         map[string]any
+
+	tick    bool
+	tickers []types.Ticker
 }
 
 var _ ElementImpl = (*ProgressBaseImpl[ProgressImpl])(nil)
 
 func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], *ProgressBaseImpl[T], error) {
-	e := &ProgressBaseImpl[T]{tick: general.Optional(tick...)}
+	e := &ProgressBaseImpl[T]{tick: general.Optional(tick...), variables: make(map[string]any)}
 	e.format = c.GetColor()
 	e.progressFormat = c.GetProgressColor()
 
@@ -76,6 +90,14 @@ func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c sp
 	e.ElemBaseImpl = s
 	e.tick = general.OptionalDefaulted(c.GetTick(), tick...)
 	return &ProgressBase[T]{b, e}, e, nil
+}
+
+func (b *ProgressBaseImpl[T]) SetVariable(name string, value any) {
+	b.variables[name] = value
+}
+
+func (b *ProgressBaseImpl[T]) GetVariable(name string) any {
+	return b.variables[name]
 }
 
 func (b *ProgressBaseImpl[T]) Tick() bool {

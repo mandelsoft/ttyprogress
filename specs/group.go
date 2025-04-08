@@ -29,15 +29,15 @@ func (d *VoidGroupNotifier[E]) Done(e E, o any) {}
 
 type GroupInterface interface {
 	Container
-	Element
+	ElementInterface
 }
 
-type GroupDefinition[T any, E Element] struct {
+type GroupDefinition[T any, E ProgressInterface] struct {
 	GroupBaseDefinition[T]
 	main GroupProgressElementDefinition[E]
 }
 
-func NewGroupDefinition[T any, E Element](s Self[T], main GroupProgressElementDefinition[E]) *GroupDefinition[T, E] {
+func NewGroupDefinition[T any, E ProgressInterface](s Self[T], main GroupProgressElementDefinition[E]) *GroupDefinition[T, E] {
 	return &GroupDefinition[T, E]{
 		main:                main,
 		GroupBaseDefinition: NewGroupBaseDefinition(s),
@@ -60,7 +60,7 @@ type GroupSpecification[T any] interface {
 	GroupBaseSpecification[T]
 }
 
-type GroupConfiguration[E Element] interface {
+type GroupConfiguration[E ProgressInterface] interface {
 	GroupBaseConfiguration
 
 	// GetProgress provides the main group progress indicator.

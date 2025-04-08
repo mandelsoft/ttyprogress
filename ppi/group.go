@@ -50,6 +50,14 @@ func NewGroupBase[T ProgressInterface](p Container, c specs.GroupBaseConfigurati
 	}
 }
 
+func (g *GroupBase[T]) SetVariable(name string, value any) {
+	g.main.SetVariable(name, value)
+}
+
+func (g *GroupBase[T]) GetVariable(name string) any {
+	return g.main.GetVariable(name)
+}
+
 func (g *GroupBase[T]) SetFinal(m string) {
 	g.blocks[0].SetFinal(m)
 }

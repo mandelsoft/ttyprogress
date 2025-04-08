@@ -15,12 +15,16 @@ func main() {
 
 	bars := []int{1000, specs.SpinnerType}
 
+	def := ttyprogress.NewSpinner().
+		SetSpeed(1).
+		AppendElapsed().
+		PrependMessage("working on").
+		PrependVariable("name").
+		PrependMessage("...")
+
 	for i, b := range bars {
-		bar, _ := ttyprogress.NewSpinner().
-			SetPredefined(b).
-			SetSpeed(1).
-			PrependFunc(ttyprogress.Message(fmt.Sprintf("working on task %d ...", i+1))).
-			AppendElapsed().Add(p)
+		bar, _ := def.SetPredefined(b).Add(p)
+		bar.SetVariable("name", fmt.Sprintf("task %d", i+1))
 		bar.Start()
 		go func() {
 			time.Sleep(time.Second * time.Duration(10+rand.Int()%20))

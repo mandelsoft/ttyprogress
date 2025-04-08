@@ -29,6 +29,7 @@ type (
 	TitleLineProvider   = specs.TitleLineProvider
 	GapProvider         = specs.GapProvider
 	FollowupGapProvider = specs.FollowupGapProvider
+	VariableProvider    = specs.VariableProvider
 )
 
 type ElemBase[I ElementImpl] struct {
@@ -108,6 +109,8 @@ type ElemBaseImpl[I ElementImpl] struct {
 	block  *blocks.Block
 	closer func()
 
+	variables map[string]string
+
 	// timeStarted is time progress began.
 	timeStarted time.Time
 	timeElapsed time.Duration
@@ -124,7 +127,13 @@ func NewElemBase[I ElementImpl](self object.Self[I, any], p Container, c specs.E
 
 	b := blocks.NewBlock(view)
 
-	e := &ElemBaseImpl[I]{lock: synclog.NewRWMutex(generics.TypeOf[I]().String()), self: self, block: b, closer: general.Optional(closer...)}
+	e := &ElemBaseImpl[I]{
+		lock:      synclog.NewRWMutex(generics.TypeOf[I]().String()),
+		self:      self,
+		block:     b,
+		closer:    general.Optional(closer...),
+		variables: make(map[string]string),
+	}
 
 	b.SetPayload(self.Self())
 	if c.GetFinal() != "" {

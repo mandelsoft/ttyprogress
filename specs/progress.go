@@ -8,9 +8,7 @@ import (
 	"github.com/mandelsoft/ttyprogress/types"
 )
 
-type ProgressInterface interface {
-	Element
-}
+type ProgressInterface = types.ProgressElement
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -170,6 +168,16 @@ func (d *ProgressDefinition[T]) PrependMessage(m string, offset ...int) T {
 	return d.PrependFunc(Message(m), offset...)
 }
 
+// AppendMVariable appends text to the progress indicator
+func (d *ProgressDefinition[T]) AppendVariable(m string, offset ...int) T {
+	return d.AppendFunc(Variable(m), offset...)
+}
+
+// PrependVariable prepends text to the beginning of the indicator
+func (d *ProgressDefinition[T]) PrependVariable(m string, offset ...int) T {
+	return d.PrependFunc(Variable(m), offset...)
+}
+
 func timeElapsed(e ElementState) any {
 	var s string
 	if e.IsStarted() {
@@ -269,7 +277,7 @@ type Appender interface {
 	AppendDecorator2(f DecoratorDefinition, offset ...int)
 }
 
-func AppendFunc[T Element](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
+func AppendFunc[T ElementInterface](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
 	if a, ok := types.Unwrap(d).(Appender); ok {
 		a.AppendFunc2(f, offset...)
 		return true
@@ -277,7 +285,7 @@ func AppendFunc[T Element](d types.ElementDefinition[T], f DecoratorFunc, offset
 	return false
 }
 
-func PrependFunc[T Element](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
+func PrependFunc[T ElementInterface](d types.ElementDefinition[T], f DecoratorFunc, offset ...int) bool {
 	if a, ok := types.Unwrap(d).(Prepender); ok {
 		a.PrependFunc2(f, offset...)
 		return true

@@ -9,16 +9,16 @@ import (
 
 type NestedStepsInterface interface {
 	ProgressInterface
-	Incr() (Element, error)
-	Current() Element
+	Incr() (ElementInterface, error)
+	Current() ElementInterface
 }
 
 type NestedStep struct {
 	name string
-	def  types.ElementDefinition[Element]
+	def  types.ElementDefinition[ElementInterface]
 }
 
-func NewNestedStep[T Element](name string, def types.ElementDefinition[T]) NestedStep {
+func NewNestedStep[T ElementInterface](name string, def types.ElementDefinition[T]) NestedStep {
 	return NestedStep{
 		name: name,
 		def:  types.GenericDefinition(def),
@@ -29,7 +29,7 @@ func (n *NestedStep) Name() string {
 	return n.name
 }
 
-func (n *NestedStep) Definition() types.ElementDefinition[Element] {
+func (n *NestedStep) Definition() types.ElementDefinition[ElementInterface] {
 	return n.def
 }
 

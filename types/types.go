@@ -94,3 +94,11 @@ type ElementState interface {
 	IsFinished() bool
 	TimeElapsed() time.Duration
 }
+
+// ProgressElement is the interface for a
+// progress element (like a Bar or a Spinner).
+type ProgressElement interface {
+	Element
+	SetVariable(name string, value any)
+	GetVariable(name string) any
+}

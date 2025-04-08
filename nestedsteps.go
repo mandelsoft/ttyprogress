@@ -92,6 +92,14 @@ func (n *_NestedStepsImpl) SetFinal(m string) {
 	n.main.SetFinal(m)
 }
 
+func (n *_NestedStepsImpl) SetVariable(name string, value any) {
+	n.main.SetVariable(name, value)
+}
+
+func (n *_NestedStepsImpl) GetVariable(name string) any {
+	return n.main.GetVariable(name)
+}
+
 func (n *_NestedStepsImpl) IsStarted() bool {
 	return n.main.IsStarted()
 }

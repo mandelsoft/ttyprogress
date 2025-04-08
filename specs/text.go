@@ -8,7 +8,7 @@ import (
 )
 
 type TextInterface interface {
-	Element
+	ElementInterface
 	io.Writer
 }
 

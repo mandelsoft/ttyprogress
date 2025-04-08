@@ -2,8 +2,8 @@ package specs
 
 type BarInterface interface {
 	BarBaseInterface[int]
+	SetTotal(m int)
 
-	IsFinished() bool
 	Set(n int) bool
 	Incr() bool
 }

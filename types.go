@@ -9,6 +9,8 @@ import (
 type DecoratorFunc = types.DecoratorFunc
 
 type Element = types.Element
+type ProgressElement = types.ProgressElement
+
 type ElementState = types.ElementState
 type Container = types.Container
 

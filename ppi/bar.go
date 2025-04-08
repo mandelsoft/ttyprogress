@@ -13,12 +13,12 @@ type BarInterface[V any] interface {
 	ProgressInterface
 	CompletedPercent() float64
 	Total() V
+	SetTotal(v V)
 }
 
 type BarImpl[V any] interface {
 	ProgressImpl
 	BarInterface[V]
-	SetTotal(v V)
 }
 
 type BarBase[T BarImpl[V], V any] struct {
@@ -30,6 +30,12 @@ func (b *BarBase[T, V]) Total() V {
 	defer b.elem.Lock()()
 
 	return b.elem.Protected().Total()
+}
+
+func (b *BarBase[T, V]) SetTotal(v V) {
+	defer b.elem.Lock()()
+
+	b.elem.Protected().SetTotal(v)
 }
 
 type BarBaseImpl[T BarImpl[V], V any] struct {

@@ -59,6 +59,12 @@ func (b *IntBarBase[T]) Current() int {
 	return b.elem.Protected().Current()
 }
 
+func (b *IntBarBase[T]) SetTotal(n int) {
+	defer b.elem.Lock()()
+
+	b.elem.Protected().SetTotal(n)
+}
+
 func (b *IntBarBase[T]) Set(n int) bool {
 	defer b.elem.Lock()()
 

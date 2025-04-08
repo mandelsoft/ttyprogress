@@ -6,9 +6,9 @@ import (
 	"github.com/mandelsoft/ttyprogress/types"
 )
 
-// Element is the common interface of all
+// ElementInterface is the common interface of all
 // elements provided by the ttyprogress package
-type Element = types.Element
+type ElementInterface = types.Element
 
 type ElementState = types.ElementState
 
@@ -90,6 +90,12 @@ type FollowupGapProvider interface {
 // title format.
 type TitleFormatProvider interface {
 	GetTitleFormat() ttycolors.Format
+}
+
+// VariableProvider is the optional interface to provide a
+// variable value.
+type VariableProvider interface {
+	GetVariable(name string) any
 }
 
 // ViewFormatProvider is the optional interface to provide a
