@@ -3,6 +3,7 @@ package specs
 import (
 	"slices"
 
+	"github.com/mandelsoft/goutils/optionutils"
 	"github.com/mandelsoft/goutils/stringutils"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/types"
@@ -20,6 +21,7 @@ type ProgressDefinition[T any] struct {
 	nextdecoratorFormat ttycolors.Format
 	appendDefs          []DecoratorDefinition
 	prependDefs         []DecoratorDefinition
+	autoclose           bool
 	tick                bool
 }
 
@@ -31,7 +33,7 @@ var (
 )
 
 func NewProgressDefinition[T any](self Self[T]) ProgressDefinition[T] {
-	return ProgressDefinition[T]{ElementDefinition: NewElementDefinition(self)}
+	return ProgressDefinition[T]{ElementDefinition: NewElementDefinition(self), autoclose: true}
 }
 
 func (d *ProgressDefinition[T]) Dup(s Self[T]) ProgressDefinition[T] {
@@ -50,6 +52,15 @@ func (d *ProgressDefinition[T]) GetTick() bool {
 // setTick returns whether a tick is required.
 func (d *ProgressDefinition[T]) setTick(b bool) {
 	d.tick = b || d.tick
+}
+
+func (d *ProgressDefinition[T]) SetAutoClose(b ...bool) T {
+	d.autoclose = optionutils.BoolOption(b...)
+	return d.Self()
+}
+
+func (d *ProgressDefinition[T]) IsAutoClose() bool {
+	return d.autoclose
 }
 
 // SetDecoratorFormat sets the output format for the next decorator.
@@ -192,6 +203,10 @@ func timeElapsed(e ElementState) any {
 type ProgressSpecification[T any] interface {
 	ElementSpecification[T]
 
+	// SetAutoClose enables/disabled automatic closeing
+	// the element when Update indicates finished.
+	SetAutoClose(b ...bool) T
+
 	// SetColor set the color used for the progress line.
 	SetColor(col ...ttycolors.FormatProvider) T
 
@@ -246,6 +261,7 @@ type ProgressSpecification[T any] interface {
 type ProgressConfiguration interface {
 	ElementConfiguration
 	GetTick() bool
+	IsAutoClose() bool
 
 	GetColor() ttycolors.Format
 	GetProgressColor() ttycolors.Format
@@ -262,6 +278,7 @@ func TransferProgressConfig[D ProgressSpecification[T], T any](d D, c ProgressCo
 	for _, e := range c.GetAppendDecorators() {
 		d.AppendDecorator(e)
 	}
+	d.SetAutoClose(c.IsAutoClose())
 	d.SetColor(c.GetColor())
 	d.setTick(c.GetTick())
 	return TransferElementConfig(d, c)

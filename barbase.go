@@ -107,6 +107,10 @@ func (b *IntBarBaseImpl[T]) Set(n int) bool {
 		n = b.Protected().Total()
 	}
 	b.current = n
+	if n == b.Protected().Total() {
+		x := 1
+		_ = x
+	}
 	b.Protected().Flush()
 	return true
 }
@@ -121,12 +125,7 @@ func (b *IntBarBaseImpl[T]) Incr() bool {
 
 	n := b.current + 1
 	b.current = n
-
-	if b.current == b.Protected().Total() {
-		b.Protected().Close()
-	} else {
-		b.Protected().Flush()
-	}
+	b.Protected().Flush()
 	return true
 }
 

@@ -12,9 +12,10 @@ type BarBaseInterface[V any] interface {
 
 type BarBaseDefinition[T any] struct {
 	ProgressDefinition[T]
-	width   uint
-	pending string
-	config  BarConfig
+	width     uint
+	pending   string
+	config    BarConfig
+	autoclose bool
 }
 
 var _ BarBaseSpecification[any] = (*BarBaseDefinition[any])(nil)
@@ -27,6 +28,7 @@ func NewBarBaseDefinition[T any](self Self[T]) BarBaseDefinition[T] {
 		config:             BarTypes[BarType],
 		width:              BarWidth,
 		pending:            Pending,
+		autoclose:          true,
 	}
 }
 

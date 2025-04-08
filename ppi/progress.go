@@ -18,6 +18,7 @@ type ProgressImpl interface {
 	specs.ProgressInterface
 	Tick() bool
 	/* abstract protected */ Visualize() (ttycolors.String, bool)
+	IsAutoClose() bool
 }
 
 // ProgressBase is a base implementation for elements providing
@@ -54,6 +55,7 @@ type ProgressBaseImpl[T ProgressImpl] struct {
 	appendDecorators  []types.Decorator
 	prependDecorators []types.Decorator
 	variables         map[string]any
+	autoclose         bool
 
 	tick    bool
 	tickers []types.Ticker
@@ -62,7 +64,11 @@ type ProgressBaseImpl[T ProgressImpl] struct {
 var _ ElementImpl = (*ProgressBaseImpl[ProgressImpl])(nil)
 
 func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], *ProgressBaseImpl[T], error) {
-	e := &ProgressBaseImpl[T]{tick: general.Optional(tick...), variables: make(map[string]any)}
+	e := &ProgressBaseImpl[T]{
+		tick:      general.Optional(tick...),
+		variables: make(map[string]any),
+		autoclose: c.IsAutoClose(),
+	}
 	e.format = c.GetColor()
 	e.progressFormat = c.GetProgressColor()
 
@@ -98,6 +104,10 @@ func (b *ProgressBaseImpl[T]) SetVariable(name string, value any) {
 
 func (b *ProgressBaseImpl[T]) GetVariable(name string) any {
 	return b.variables[name]
+}
+
+func (b *ProgressBaseImpl[T]) IsAutoClose() bool {
+	return b.autoclose
 }
 
 func (b *ProgressBaseImpl[T]) Tick() bool {
@@ -159,7 +169,9 @@ func (b *ProgressBaseImpl[T]) Update() bool {
 	b.block.Reset()
 	b.block.Write([]byte(line + "\n"))
 	if done {
-		b.Close()
+		if b.Protected().IsAutoClose() {
+			b.Close()
+		}
 	}
 	return true
 }
