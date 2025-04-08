@@ -178,6 +178,27 @@ bar := ttyprogress.NewBar().
 
 This example can be found in [examples/progress/bar/main.go](examples/progress/bar/main.go).
 
+The `LineBar` progress indicator does not use an explicit
+progress visualization, but the complete progress line
+by reversing the output according to the achieved
+progress.
+
+```golang
+bar := ttyprogress.NewLineBar().
+		SetTotal(500).
+		PrependMessage("Downloading...").
+		PrependElapsed().AppendCompleted().
+		SetDecoratorFormat(ttycolors.FmtGreen).
+		AppendFunc(ttyprogress.Amount(units.Bytes(1024)))
+```
+
+
+<p align="center">
+  <img src="examples/progress/linebar/demo.gif" alt="Line Bar Demo" title="Line Bar Demo" />
+</p>
+
+This example can be found in [examples/progress/linebar/main.go](examples/progress/linebar/main.go).
+
 ### Progress Bar for Steps
 
 If there is a fixed set of sequential steps the progress can be indicated with a `Steps` indicator archetype.
@@ -379,6 +400,53 @@ in the example  [examples/progress/complex/main.go](examples/progress/complex/ma
   <img src="examples/progress/complex/demo.gif" alt="Complex Orchestration Demo" title="Complex Orchestration Demo" />
 </p>
 
+### Variables
+
+Progress indicator decorations can be based on variables. This can be used
+for example to visualize an execution status in addition to the progress.
+Variable values can be dynamically set on the progress elements.
+
+```golang
+func main() {
+	p := ttyprogress.For(os.Stdout)
+
+	bars := []int{1000, specs.SpinnerType}
+
+	def := ttyprogress.NewSpinner().
+		SetSpeed(1).
+		AppendElapsed().
+		PrependMessage("working on").
+		PrependVariable("name").
+		PrependMessage("...")
+
+	for i, b := range bars {
+		bar, _ := def.SetPredefined(b).Add(p)
+		bar.SetVariable("name", fmt.Sprintf("task %d", i+1))
+		bar.Start()
+		go func() {
+			time.Sleep(time.Second * time.Duration(10+rand.Int()%20))
+			bar.Close()
+		}()
+	}
+
+	p.Close()
+	p.Wait(nil)
+}
+```
+
+With `AppendVariable` or `PrependVariable` variable values can be
+added to the progress line. The state passed to the decorators can access the
+variable values, which enabled to create more complex decorators using
+variable values of an arbitrary structure.
+While feeding the progress the variables can be modified on the progress
+element with `SetVariable`.
+
+<p align="center">
+  <img src="examples/progress/variables/demo.gif" alt="Using Variables" title="Using Variables" />
+</p>
+
+This example can be found in [examples/progress/variables/main.go](examples/progress/variables/main.go).
+
 ### Colors
 
 This library works together with the terminal color library [github.com/mandelsoft/ttycolors](https://github.com/mandelsoft/ttycolors).
@@ -403,7 +471,7 @@ disables the output formatting, even if the standard output is directed to a ter
 
 Elements of the main progress line can be colorized separately.
 
-This example can be found in [examples/progress/colors/main.go](examples/progress/group/main.go).
+This example can be found in [examples/progress/colors/main.go](examples/progress/colors/main.go).
 
 Be careful using colors in text views. This only works, if a line 
 contains a complete output format ANSI sequences. Text based indicators

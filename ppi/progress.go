@@ -16,6 +16,7 @@ type ProgressInterface = specs.ProgressInterface
 type ProgressImpl interface {
 	ElementImpl
 	specs.ProgressInterface
+	Line() (string, bool)
 	Tick() bool
 	/* abstract protected */ Visualize() (ttycolors.String, bool)
 	IsAutoClose() bool
@@ -100,6 +101,7 @@ func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c sp
 
 func (b *ProgressBaseImpl[T]) SetVariable(name string, value any) {
 	b.variables[name] = value
+	b.Protected().Flush()
 }
 
 func (b *ProgressBaseImpl[T]) GetVariable(name string) any {
@@ -126,13 +128,7 @@ func (b *ProgressBaseImpl[T]) Line() (string, bool) {
 	sep := false
 
 	// render prepend functions to the left of the bar
-	for _, f := range b.prependDecorators {
-		if sep {
-			seq = append(seq, " ")
-		}
-		seq = append(seq, f.Decorate())
-		sep = true
-	}
+	seq, sep = appendDecorators(seq, sep, b.prependDecorators)
 
 	data, done := b.Protected().Visualize()
 	// render main function
@@ -149,13 +145,7 @@ func (b *ProgressBaseImpl[T]) Line() (string, bool) {
 	}
 
 	// render append functions to the right of the bar
-	for _, f := range b.appendDecorators {
-		if sep {
-			seq = append(seq, " ")
-		}
-		seq = append(seq, f.Decorate())
-		sep = true
-	}
+	seq, sep = appendDecorators(seq, sep, b.appendDecorators)
 
 	if b.format != nil {
 		return b.StringWith(b.format, seq...).String(), done
@@ -163,8 +153,22 @@ func (b *ProgressBaseImpl[T]) Line() (string, bool) {
 	return b.String(seq...).String(), done
 }
 
+func appendDecorators(seq []any, sep bool, decorators []types.Decorator) ([]any, bool) {
+	for _, f := range decorators {
+		v := f.Decorate()
+		if v != nil && v != "" {
+			if sep {
+				seq = append(seq, " ")
+			}
+			seq = append(seq, v)
+			sep = true
+		}
+	}
+	return seq, sep
+}
+
 func (b *ProgressBaseImpl[T]) Update() bool {
-	line, done := b.Line()
+	line, done := b.Protected().Line()
 
 	b.block.Reset()
 	b.block.Write([]byte(line + "\n"))

@@ -6,24 +6,24 @@ import (
 
 // GroupNotifier is used to propagate
 // group changes to the main group progress indicator.
-type GroupNotifier[E ProgressInterface] interface {
-	Add(e E, o any)
-	Done(e E, o any)
+type GroupNotifier interface {
+	Add(e ProgressInterface, o any)
+	Done(e ProgressInterface, o any)
 }
 
 // GroupProgressElementDefinition the interface for a progress indicator
 // definition to be usable for a main group progress indicator.
 type GroupProgressElementDefinition[E ProgressInterface] interface {
 	types.ElementDefinition[E]
-	GetGroupNotifier() GroupNotifier[E]
+	GetGroupNotifier() GroupNotifier
 }
 
-type VoidGroupNotifier[E any] struct{}
+type VoidGroupNotifier struct{}
 
-var _ GroupNotifier[ProgressInterface] = (*VoidGroupNotifier[ProgressInterface])(nil)
+var _ GroupNotifier = (*VoidGroupNotifier)(nil)
 
-func (d *VoidGroupNotifier[E]) Add(e E, o any)  {}
-func (d *VoidGroupNotifier[E]) Done(e E, o any) {}
+func (d *VoidGroupNotifier) Add(e ProgressInterface, o any)  {}
+func (d *VoidGroupNotifier) Done(e ProgressInterface, o any) {}
 
 ////////////////////////////////////////////////////////////////////////////////
 

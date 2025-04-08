@@ -48,7 +48,7 @@ func (d *BarDefinition) Dup() *BarDefinition {
 	return dup
 }
 
-func (d *BarDefinition) GetGroupNotifier() specs.GroupNotifier[Bar] {
+func (d *BarDefinition) GetGroupNotifier() specs.GroupNotifier {
 	return &barGroupNotifier{}
 }
 

@@ -10,9 +10,9 @@ type barGroupNotifier struct {
 	started bool
 }
 
-var _ specs.GroupNotifier[Bar] = (*barGroupNotifier)(nil)
+var _ specs.GroupNotifier = (*barGroupNotifier)(nil)
 
-func (n *barGroupNotifier) Add(b Bar, p any) {
+func (n *barGroupNotifier) Add(b ProgressElement, p any) {
 	eff := b.(*IntBarBase[IntBarImpl])
 	defer eff.elem.Lock()()
 
@@ -23,8 +23,9 @@ func (n *barGroupNotifier) Add(b Bar, p any) {
 	eff.elem.Protected().SetTotal(eff.elem.Protected().Total() + 1)
 }
 
-func (*barGroupNotifier) Done(b Bar, p any) {
-	b.Incr()
+func (*barGroupNotifier) Done(b ProgressElement, p any) {
+	eff := b.(*IntBarBase[IntBarImpl])
+	eff.Incr()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,12 +58,6 @@ func (b *IntBarBase[T]) Current() int {
 	defer b.elem.Lock()()
 
 	return b.elem.Protected().Current()
-}
-
-func (b *IntBarBase[T]) SetTotal(n int) {
-	defer b.elem.Lock()()
-
-	b.elem.Protected().SetTotal(n)
 }
 
 func (b *IntBarBase[T]) Set(n int) bool {
@@ -107,10 +102,6 @@ func (b *IntBarBaseImpl[T]) Set(n int) bool {
 		n = b.Protected().Total()
 	}
 	b.current = n
-	if n == b.Protected().Total() {
-		x := 1
-		_ = x
-	}
 	b.Protected().Flush()
 	return true
 }

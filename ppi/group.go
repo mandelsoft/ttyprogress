@@ -23,14 +23,14 @@ type GroupBase[T ProgressInterface] struct {
 	followup string
 
 	main      T
-	notifier  specs.GroupNotifier[T]
+	notifier  specs.GroupNotifier
 	blocks    []*blocks.Block
 	blockinfo map[*blocks.Block]bool
 
 	closed bool
 }
 
-func NewGroupBase[T ProgressInterface](p Container, c specs.GroupBaseConfiguration, main func(base *GroupBase[T]) (T, specs.GroupNotifier[T], error)) (*GroupBase[T], T) {
+func NewGroupBase[T ProgressInterface](p Container, c specs.GroupBaseConfiguration, main func(base *GroupBase[T]) (T, specs.GroupNotifier, error)) (*GroupBase[T], T) {
 	g := &GroupBase[T]{
 		parent:   p,
 		gap:      c.GetGap(),

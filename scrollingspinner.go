@@ -20,8 +20,8 @@ func NewScrollingSpinner(text string, length int) *ScrollingSpinnerDefinition {
 	return d
 }
 
-func (d *ScrollingSpinnerDefinition) GetGroupNotifier() specs.GroupNotifier[Spinner] {
-	return &specs.VoidGroupNotifier[Spinner]{}
+func (d *ScrollingSpinnerDefinition) GetGroupNotifier() specs.GroupNotifier {
+	return &specs.VoidGroupNotifier{}
 }
 
 func (d *ScrollingSpinnerDefinition) Dup() *ScrollingSpinnerDefinition {

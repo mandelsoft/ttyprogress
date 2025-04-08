@@ -44,7 +44,7 @@ var _ Group = (*_group[specs.ProgressInterface])(nil)
 
 func newGroup[E ppi.ProgressInterface](p Container, c specs.GroupConfiguration[E]) (Group, error) {
 	g := &_group[E]{}
-	g.GroupBase, g.main = ppi.NewGroupBase[E](p, c, func(b *ppi.GroupBase[E]) (E, specs.GroupNotifier[E], error) {
+	g.GroupBase, g.main = ppi.NewGroupBase[E](p, c, func(b *ppi.GroupBase[E]) (E, specs.GroupNotifier, error) {
 		e, err := c.GetProgress().Add(b)
 		if err != nil {
 			return e, nil, err

@@ -1,0 +1,4 @@
+config:
+  rows: 8
+  frameBox:
+    title: Using Variables

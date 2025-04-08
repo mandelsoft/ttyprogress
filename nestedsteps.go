@@ -76,14 +76,14 @@ func newNestedSteps(p Container, c specs.NestedStepsConfiguration) (NestedSteps,
 	names := stringutils.AlignLeft(sliceutils.Transform(steps, func(step NestedStep) string { return step.Name() }), ' ')
 
 	n := &_NestedStepsImpl{steps: steps, names: names}
-	n.group, n.main = ppi.NewGroupBase[nestedMain](p, c, func(b *ppi.GroupBase[nestedMain]) (nestedMain, specs.GroupNotifier[nestedMain], error) {
+	n.group, n.main = ppi.NewGroupBase[nestedMain](p, c, func(b *ppi.GroupBase[nestedMain]) (nestedMain, specs.GroupNotifier, error) {
 		var d nestedMain
 		if c.IsShowStepTitle() {
 			d, err = specs.TransferBarBaseConfig(NewSteps(names...), c).Add(b)
 		} else {
 			d, err = specs.TransferBarBaseConfig(NewBar().SetTotal(len(steps)), c).Add(b)
 		}
-		return d, &specs.VoidGroupNotifier[nestedMain]{}, nil
+		return d, &specs.VoidGroupNotifier{}, nil
 	})
 	return n, err
 }

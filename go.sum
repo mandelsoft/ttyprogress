@@ -31,6 +31,8 @@ github.com/mandelsoft/object v0.0.0-20250404172943-aebadf685b61 h1:itxmProWS3tgy
 github.com/mandelsoft/object v0.0.0-20250404172943-aebadf685b61/go.mod h1:6r2b3Q/H3tnX4PtmtPgug0ZEStZa14l+zQDVxlEKiDg=
 github.com/mandelsoft/ttycolors v0.0.0-20250328124755-a527e5544759 h1:QFM9Yj+goBi1mVKF21dQSIOXLoZ+ppH6h7tp1Ovt5pg=
 github.com/mandelsoft/ttycolors v0.0.0-20250328124755-a527e5544759/go.mod h1:FfNH6mYAL4ZRmml11w8f0dRQuFIBFpKh/JK1UUvEuKA=
+github.com/mandelsoft/ttycolors v0.0.0-20250408150127-1bc997885f7e h1:2d872N11iF6zPTca+Fm70j1QKe1ColagR7p5/gTF4dQ=
+github.com/mandelsoft/ttycolors v0.0.0-20250408150127-1bc997885f7e/go.mod h1:FfNH6mYAL4ZRmml11w8f0dRQuFIBFpKh/JK1UUvEuKA=
 github.com/mandelsoft/vfs v0.4.3 h1:2UMrxQkMXkcHyuqSFhgFDupQ1fmqpKLZuu04DOHx1PA=
 github.com/mandelsoft/vfs v0.4.3/go.mod h1:zmbhx2ueQc96buqNXg2S88McBMm2mNFNeyGSpSebrHw=
 github.com/mattn/go-colorable v0.1.13 h1:fFA4WZxdEF4tXPZVKMLwD8oUnCTTo08duU7wxecdEvA=

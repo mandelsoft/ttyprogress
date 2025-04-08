@@ -25,8 +25,8 @@ func NewSpinner(set ...int) *SpinnerDefinition {
 	return d
 }
 
-func (d *SpinnerDefinition) GetGroupNotifier() specs.GroupNotifier[Spinner] {
-	return &specs.VoidGroupNotifier[Spinner]{}
+func (d *SpinnerDefinition) GetGroupNotifier() specs.GroupNotifier {
+	return &specs.VoidGroupNotifier{}
 }
 
 func (d *SpinnerDefinition) Dup() *SpinnerDefinition {

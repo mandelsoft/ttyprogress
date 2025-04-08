@@ -6,7 +6,7 @@ require (
 	github.com/briandowns/spinner v1.23.2
 	github.com/mandelsoft/goutils v0.0.0-20250323093506-2cf95092ca48
 	github.com/mandelsoft/object v0.0.0-20250404172943-aebadf685b61
-	github.com/mandelsoft/ttycolors v0.0.0-20250328124755-a527e5544759
+	github.com/mandelsoft/ttycolors v0.0.0-20250408150127-1bc997885f7e
 	github.com/mattn/go-isatty v0.0.20
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
