@@ -47,20 +47,20 @@ type consoleScreenBufferInfo struct {
 	maximumWindowSize coord
 }
 
-func (w *Blocks) clearLines() {
-	f, ok := w.out.(FdWriter)
+func clearLines(out io.Writer, lineCount int) {
+	f, ok := out.(FdWriter)
 	if ok && !isatty.IsTerminal(f.Fd()) {
 		ok = false
 	}
 	if !ok {
-		_, _ = fmt.Fprint(w.out, strings.Repeat(clear, w.lineCount))
+		_, _ = fmt.Fprint(out, strings.Repeat(clear, lineCount))
 		return
 	}
 	fd := f.Fd()
 	var csbi consoleScreenBufferInfo
 	_, _, _ = procGetConsoleScreenBufferInfo.Call(fd, uintptr(unsafe.Pointer(&csbi)))
 
-	for i := 0; i < w.lineCount; i++ {
+	for i := 0; i < lineCount; i++ {
 		// move the cursor up
 		csbi.cursorPosition.y--
 		_, _, _ = procSetConsoleCursorPosition.Call(fd, uintptr(*(*int32)(unsafe.Pointer(&csbi.cursorPosition))))

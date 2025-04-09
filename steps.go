@@ -56,9 +56,7 @@ func newSteps(p Container, c specs.StepsConfiguration) (Steps, error) {
 	e := &_StepsImpl{steps: steps}
 	o := &_Steps{elem: e}
 
-	b, s, err := newIntBar[*_StepsImpl](p, c, len(steps), func(*IntBarBaseImpl[*_StepsImpl], *IntBarBase[*_StepsImpl]) object.Self[*_StepsImpl, any] {
-		return object.NewSelf[*_StepsImpl, any](e, o)
-	})
+	b, s, err := newIntBar[*_StepsImpl](p, c, len(steps), object.NewSelf[*_StepsImpl, any](e, o))
 	if err != nil {
 		return nil, err
 	}

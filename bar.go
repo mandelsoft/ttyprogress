@@ -3,7 +3,6 @@ package ttyprogress
 import (
 	"github.com/mandelsoft/goutils/errors"
 	"github.com/mandelsoft/goutils/general"
-	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
 
@@ -64,10 +63,6 @@ func (d *BarDefinition) AddWithTotal(c Container, total int) (Bar, error) {
 
 // newBar returns a new progress bar
 func newBar(p Container, c specs.BarConfiguration[int], total ...int) (Bar, error) {
-	b, _, err := newIntBar[IntBarImpl](p, c, general.OptionalDefaulted(c.GetTotal(), total...),
-		func(e *IntBarBaseImpl[IntBarImpl], o *IntBarBase[IntBarImpl]) object.Self[IntBarImpl, any] {
-			return object.NewSelf[IntBarImpl, any](e, o)
-		},
-	)
+	b, _, err := newIntBar[IntBarImpl](p, c, general.OptionalDefaulted(c.GetTotal(), total...), nil)
 	return b, err
 }

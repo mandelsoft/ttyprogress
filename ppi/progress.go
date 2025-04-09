@@ -172,6 +172,7 @@ func (b *ProgressBaseImpl[T]) Update() bool {
 
 	b.block.Reset()
 	b.block.Write([]byte(line + "\n"))
+	b.block.Flush()
 	if done {
 		if b.Protected().IsAutoClose() {
 			b.Close()

@@ -5,12 +5,13 @@ package blocks
 
 import (
 	"fmt"
+	"io"
 	"strings"
 )
 
 // clear the line and move the cursor up
 var clear = fmt.Sprintf("%c[%dA%c[2K", ESC, 1, ESC)
 
-func (w *Blocks) clearLines() {
-	_, _ = fmt.Fprint(w.out, strings.Repeat(clear, w.lineCount))
+func clearLines(out io.Writer, lineCount int) {
+	_, _ = fmt.Fprint(out, strings.Repeat(clear, lineCount))
 }

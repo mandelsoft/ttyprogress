@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	atomic2 "sync/atomic"
 
 	"github.com/mandelsoft/goutils/atomic"
 	"github.com/mandelsoft/goutils/general"
@@ -39,7 +40,7 @@ type Block struct {
 	viewFormat  ttycolors.Format
 	view        int
 	payload     any
-	next        *Block
+	next        *Block // consumer linking
 	auto        bool
 	gap         string
 	followupGap string
@@ -54,6 +55,9 @@ type Block struct {
 	final       []byte
 	hideOnClose bool
 	hidden      bool
+
+	updated   atomic2.Bool
+	lastlines int
 
 	closer []func()
 }
@@ -122,6 +126,7 @@ func (w *Block) SetTitleFormat(f ttycolors.Format) *Block {
 	defer w.lock()()
 
 	w.titleFormat = f
+	w.Flush()
 	return w
 }
 
@@ -136,6 +141,7 @@ func (w *Block) SetTitleLine(s string) *Block {
 	defer w.lock()()
 
 	w.titleline = s
+	w.Flush()
 	return w
 }
 
@@ -143,6 +149,7 @@ func (w *Block) SetFinal(data string) *Block {
 	defer w.lock()()
 
 	w.final = []byte(data)
+	w.Flush()
 	return w
 }
 
@@ -150,6 +157,7 @@ func (w *Block) SetAuto(b ...bool) *Block {
 	defer w.lock()()
 
 	w.auto = general.OptionalDefaultedBool(true, b...)
+	w.Flush()
 	return w
 }
 
@@ -160,6 +168,7 @@ func (w *Block) SetGap(gap string) *Block {
 	if w.followupGap == "" {
 		w.followupGap = gap
 	}
+	w.Flush()
 	return w
 }
 
@@ -167,6 +176,7 @@ func (w *Block) SetFollowUpGap(gap string) *Block {
 	defer w.lock()()
 
 	w.followupGap = gap
+	w.Flush()
 	return w
 }
 
@@ -174,6 +184,7 @@ func (w *Block) SetContentGap(gap string) *Block {
 	defer w.lock()()
 
 	w.contentGap = gap
+	w.Flush()
 	return w
 }
 
@@ -190,12 +201,20 @@ func (w *Block) Payload() any {
 	return w.payload
 }
 
+// SetNext set consumer linking.
+// The methods SetNext and Next are
+// intended for consumers to maintain
+// own block sequences.
 func (w *Block) SetNext(n *Block) {
 	defer w.lock()()
 
 	w.next = n
 }
 
+// next get comsumer linking.
+// The methods SetNext and Next are
+// intended for consumers to maintain
+// own block sequences.
 func (w *Block) Next() *Block {
 	defer w.rlock()()
 	return w.next
@@ -239,16 +258,19 @@ func (w *Block) Write(buf []byte) (n int, err error) {
 		n, err = w.buf.Write(buf)
 	}
 	if w.auto {
-		w.requestFlush()
+		w.Flush()
 	}
 	return n, err
 }
 
-func (w *Block) requestFlush() {
+func (w *Block) Flush() error {
+	w.updated.Store(true)
 	b := w.blocks.Load()
-	if b != nil {
-		b.requestFlush()
+	if b == nil {
+		return ErrNotAssigned
 	}
+	b.requestFlush()
+	return nil
 }
 
 func (w *Block) Close() error {
@@ -261,7 +283,7 @@ func (w *Block) Close() error {
 		return os.ErrClosed
 	}
 	if w.hideOnClose {
-		w.requestFlush()
+		w.Flush()
 		w.hidden = true
 	}
 	w.closed = true
@@ -293,14 +315,6 @@ func (w *Block) Wait(ctx context.Context) error {
 	}
 }
 
-func (w *Block) Flush() error {
-	b := w.blocks.Load()
-	if b == nil {
-		return ErrNotAssigned
-	}
-	return b.Flush()
-}
-
 type lineinfo struct {
 	start    int
 	implicit int
@@ -324,6 +338,7 @@ func (w *Block) emit(final bool) (int, error) {
 	blocks := w.blocks.Load()
 
 	if w.hidden {
+		w.lastlines = 0
 		return 0, nil
 	}
 	lines := 0
@@ -339,6 +354,7 @@ func (w *Block) emit(final bool) (int, error) {
 		}
 	}
 	if len(data) == 0 {
+		w.lastlines = titleline
 		return titleline, nil
 	}
 
@@ -388,22 +404,23 @@ func (w *Block) emit(final bool) (int, error) {
 	}
 
 	var err error
+	var eff int
+
 	if final || lines <= w.view {
 		_, err = blocks.out.Write(w._formatView(data))
-		eff := lines + implicit + titleline
+		eff = lines + implicit + titleline
 		// fmt.Fprintf(os.Stderr, "data: %s\n", string(data))
 		// fmt.Fprintf(os.Stderr, "eff %d, lines %d, implicit %d\n", eff, lines, implicit)
 
-		return eff, err
 	} else {
 		index := (lines) % w.view
 		start := linestart[index].start
 		view := data[start:]
 		_, err = blocks.out.Write(w._formatView(view))
-		eff := w.view + implicit - linestart[index].implicit + titleline
+		eff = w.view + implicit - linestart[index].implicit + titleline
 		// fmt.Fprintf(os.Stderr, "data: %s\n", string(view))
 		// fmt.Fprintf(os.Stderr, "eff %d, lines %d, implicit %d\n", eff, lines, implicit)
-
-		return eff, err
 	}
+	w.lastlines = eff
+	return eff, err
 }

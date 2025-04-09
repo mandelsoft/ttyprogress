@@ -90,8 +90,11 @@ func (w *Blocks) Done() <-chan struct{} {
 func (w *Blocks) _flush() {
 	w.lock.Lock()
 	defer w.lock.Unlock()
-	w.clearLines()
-	w.flush()
+	/*
+		clearLines(w.out, w.lineCount)
+		w.flushAll()
+	*/
+	w.deltaFlush()
 }
 
 func (w *Blocks) listen() {
@@ -248,14 +251,14 @@ func (w *Blocks) discardBlock() error {
 	discarded := false
 	for len(w.blocks) > 0 && w.blocks[0].closed {
 		if !discarded {
-			w.clearLines()
+			clearLines(w.out, w.lineCount)
 			discarded = true
 		}
 		w.blocks[0].emit(true)
 		w.blocks = w.blocks[1:]
 	}
 	if discarded {
-		err := w.flush()
+		err := w.flushAll()
 		w.checkDone()
 		return err
 	}
@@ -267,7 +270,7 @@ func (w *Blocks) Flush() error {
 	return nil
 }
 
-func (w *Blocks) flush() error {
+func (w *Blocks) flushAll() error {
 	lines := 0
 	for _, b := range w.blocks {
 		l, err := b.emit(false)
@@ -277,6 +280,37 @@ func (w *Blocks) flush() error {
 		}
 	}
 	w.lineCount = lines
+	return err
+}
+
+func (w *Blocks) deltaFlush() error {
+	// determine first delta block
+	start := -1
+	complete := 0
+	lines := 0
+	sum := &complete
+	for i, b := range w.blocks {
+		if start < 0 {
+			if b.updated.Swap(false) {
+				start = i
+				sum = &lines
+			}
+		}
+		(*sum) += b.lastlines
+	}
+	if start < 0 {
+		return nil
+	}
+
+	clearLines(w.out, lines)
+	for _, b := range w.blocks[start:] {
+		l, err := b.emit(false)
+		complete += l
+		if err != nil {
+			return err
+		}
+	}
+	w.lineCount = complete
 	return err
 }
 

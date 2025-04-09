@@ -12,18 +12,20 @@ import (
 	"github.com/mandelsoft/ttyprogress/specs"
 )
 
-// Progress is a set of lines on a terminal
+// Context is a set of lines on a terminal
 // used to display some live progress information.
 // It can be used to display an arbitrary number of
 // progress elements, which are independently.
 // Leading elements will leave the text window
 // used once they are finished.
-type Progress interface {
+type Context interface {
+	Container
+
 	// GetTTYContext returns the underlying ttycolors.TTYContext.
 	GetTTYContext() ttycolors.TTYContext
 
 	IsColorsEnabled() bool
-	EnableColors(b ...bool) Progress
+	EnableColors(b ...bool) Context
 
 	// Blocks returns the underlying
 	// blocks.Blocks object used
@@ -34,18 +36,16 @@ type Progress interface {
 	// progress object to complete.
 	Blocks() *blocks.Blocks
 
-	AddBlock(b *blocks.Block) error
-
 	// Done returns the done channel.
-	// A Progress is done, if it is closed and
+	// A Context is done, if it is closed and
 	// all progress elements are finished.
 	Done() <-chan struct{}
 
-	// Close closes the Progress. No more
+	// Close closes the Context. No more
 	// progress elements can be added anymore.
 	Close() error
 
-	// Wait until the Progress is Done.
+	// Wait until the Context is Done.
 	// If a context.Context is given, Wait
 	// also returns if the context is canceled.
 	Wait(ctx context.Context) error
@@ -62,14 +62,14 @@ type _progress struct {
 
 var _ Container = (*_progress)(nil)
 
-// For creates a new Progress, which manages a terminal line range
+// For creates a new Context, which manages a terminal line range
 // used to indicate progress of some actions.
 // This line range is always at the end of the given
 // writer, which must refer to a terminal device.
-// Progress indicators are added by explicitly calling
-// the appropriate constructors. They take the Progress
+// Context indicators are added by explicitly calling
+// the appropriate constructors. They take the Context
 // they should be attached to as first argument.
-func For(opt ...io.Writer) Progress {
+func For(opt ...io.Writer) Context {
 	p := &_progress{
 		blocks: blocks.New(opt...),
 		ticker: time.NewTicker(specs.Tick),
@@ -90,7 +90,7 @@ func (p *_progress) IsColorsEnabled() bool {
 	return p.Blocks().IsColorsEnabled()
 }
 
-func (p *_progress) EnableColors(b ...bool) Progress {
+func (p *_progress) EnableColors(b ...bool) Context {
 	p.Blocks().EnableColors(b...)
 	return p
 }
@@ -115,6 +115,12 @@ func (p *_progress) Close() error {
 	p.blocks.CloseOnDone()
 	p.closed = true
 	return nil
+}
+
+func (p *_progress) IsClosed() bool {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	return p.closed
 }
 
 func (p *_progress) Wait(ctx context.Context) error {
