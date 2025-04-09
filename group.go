@@ -37,14 +37,13 @@ func (d *GroupDefinition[E]) Add(c Container) (Group, error) {
 
 type _group[E specs.ProgressInterface] struct {
 	*ppi.GroupBase[E]
-	main E
 }
 
 var _ Group = (*_group[specs.ProgressInterface])(nil)
 
 func newGroup[E ppi.ProgressInterface](p Container, c specs.GroupConfiguration[E]) (Group, error) {
 	g := &_group[E]{}
-	g.GroupBase, g.main = ppi.NewGroupBase[E](p, c, func(b *ppi.GroupBase[E]) (E, specs.GroupNotifier, error) {
+	g.GroupBase, _ = ppi.NewGroupBase[E](p, c, func(b *ppi.GroupBase[E]) (E, specs.GroupNotifier, error) {
 		e, err := c.GetProgress().Add(b)
 		if err != nil {
 			return e, nil, err

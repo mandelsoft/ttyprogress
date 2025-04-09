@@ -1,6 +1,6 @@
 // Package ttyprogress contains utilities
 // to visualize work progress on terminals.
-// Progress is the container covering some
+// Context is the container covering some
 // lines at the end of an output stream directed
 // to a terminal. It can be used to add an arbitrary
 // number of progress indicators.

@@ -41,6 +41,8 @@ type Decorator interface {
 }
 
 type Container interface {
+	io.Closer
+	IsClosed() bool
 	AddBlock(b *blocks.Block) error
 	Wait(ctx context.Context) error
 }

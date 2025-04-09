@@ -1,13 +1,20 @@
 package specs
 
+import (
+	"github.com/mandelsoft/goutils/optionutils"
+)
+
 type GroupBaseInterface interface {
 	Container
+	HideOnClose(b ...bool)
+	Hide(b ...bool)
 }
 
 type GroupBaseDefinition[T any] struct {
-	self     Self[T]
-	gap      string
-	followup string
+	self        Self[T]
+	gap         string
+	followup    string
+	hideOnClose bool
 }
 
 var _ GroupBaseSpecification[any] = (*GroupBaseDefinition[any])(nil)
@@ -27,6 +34,15 @@ func (d *GroupBaseDefinition[T]) Dup(s Self[T]) GroupBaseDefinition[T] {
 	dup := *d
 	dup.self = s
 	return dup
+}
+
+func (d *GroupBaseDefinition[T]) HideOnClose(b ...bool) T {
+	d.hideOnClose = optionutils.BoolOption(b...)
+	return d.self.Self()
+}
+
+func (d *GroupBaseDefinition[T]) IsHideOnClose() bool {
+	return d.hideOnClose
 }
 
 func (d *GroupBaseDefinition[T]) SetGap(gap string) T {
@@ -52,9 +68,11 @@ func (d *GroupBaseDefinition[T]) GetFollowUpGap() string {
 type GroupBaseSpecification[T any] interface {
 	SetGap(string) T
 	SetFollowUpGap(string) T
+	HideOnClose(b ...bool) T
 }
 
 type GroupBaseConfiguration interface {
 	GetFollowUpGap() string
 	GetGap() string
+	IsHideOnClose() bool
 }

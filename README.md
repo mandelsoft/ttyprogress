@@ -4,7 +4,7 @@ This module provides various progress indicators for terminal
 output and a framework to create new such indicators.
 
 It is possible to combine multiple progress indicators in 
-a 'Progress' object. It covers and manages trailing lines of a terminal
+a 'Context' object. It covers and manages trailing lines of a terminal
 output and acts as group to add any number of indicators.
 Additionally, indicators can be grouped again. Those groups are
 visualized as indicators, also.
@@ -25,9 +25,10 @@ Additionally, they can freely be configured.
 
 ## Usage
 
-The usage of the library based on the `Progress` type. It is created
+The usage of the library based on the `Context` type. It is created
 using the `For` function for an `io.Writer`, which should represent
-a terminal output.
+a terminal output. The `Context` acts as `Container` for a sequence of
+indicators.
 
 ```golang
 import "github.com/mandelsoft/ttyprogress"
@@ -41,7 +42,7 @@ p.Close()
 err := p.Wait(ctx)
 ```
 
-Once a `Progress` object is created for a writer, the writer MUST NOT be used
+Once a `Context` object is created for a writer, the writer MUST NOT be used
 until the progress is finished (for example by calling `Wait`).
 As long a `Close` is not called, it is possible to add progress indicators.
 `Close` MUST be called prior to `Wait`. `Wait` waits until the progrss object is closed and all added indicators are closed and finished.
@@ -83,7 +84,7 @@ newtype := ttyprogress.New(BarElapsed)
 ```
 
 Any configuration, regardless of its creation method,  can be used to add an arbitrary number of instances
-of such a progress indicator to a `Progress` object.
+of such a progress indicator to a `Context` object.
 
 ```golang
 newtype.Add(p)
@@ -94,7 +95,7 @@ Some indicator archetypes implicitly start the indicator when
 some progress is indicated by an appropriate indicator method
 like `Incr` on a `Bar` indicator.
 
-Once all indicators are added the `Progress` object can be closed.
+Once all indicators are added the `Context` object can be closed.
 It is not possible anymore o add more indicators to a closed group.
 With calling the `Wait` method, the calling Go routine waits
 until the group and all included indicators are closed.
@@ -290,8 +291,8 @@ This example can be found in [examples/progress/textspinner/main.go](examples/pr
 
 ### Indicator Groups
 
-The initial `Progress` object holds a sequence of progress
-indicator. It is an initial indicator group. 
+The initial `Context` object holds a sequence of progress
+indicators. It is an initial indicator group. 
 There other `Group` indicators, which act as indicator and can
 hold an arbitrary sequence of indicators, again.
 The group progress is indicated by another indicator configuration
@@ -352,6 +353,25 @@ func main() {
 </p>
 
 This example can be found in [examples/progress/group/main.go](examples/progress/group/main.go).
+
+A second group flavor `AnonymousGroup` acts as a sole indicator group
+without own indicator visualizing the group progress. 
+It can be used for a common handling of a sequence of other
+indicators. It offers hiding and the gap handling as shown above.
+
+```golang
+g := ttyprogress.NewAnonymousGroup().
+		HideOnClose().
+		SetGap("- ").
+		SetFollowUpGap("  ")
+```
+
+
+<p align="center">
+  <img src="examples/progress/anongroup/demo.gif" alt="Anonymous Group Demo" title="Anonymous Group Demo" />
+</p>
+
+This example can be found in [examples/progress/anongroup/main.go](examples/progress/group/main.go).
 
 ### Nested Steps
 
@@ -451,7 +471,7 @@ This example can be found in [examples/progress/variables/main.go](examples/prog
 
 This library works together with the terminal color library [github.com/mandelsoft/ttycolors](https://github.com/mandelsoft/ttycolors).
 
-The `Progress` object is based on a `ttycolors.TTYContext` to control
+The `Context` object is based on a `ttycolors.TTYContext` to control
 the output formatting  colorized in terms of [ANSI Escape Codes](http://en.wikipedia.org/wiki/ANSI_escape_code#Colors).
 By default, it is initialized by checking the writer for writing to a terminal.
 But it can be configured, explicitly, by using the `EnableColors` method.
