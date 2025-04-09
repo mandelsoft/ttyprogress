@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/mandelsoft/goutils/general"
+	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/blocks"
 	"github.com/mandelsoft/ttyprogress/types"
@@ -83,4 +84,35 @@ func SimpleProgress[T Element](w io.Writer, e ElementDefinition[T]) T {
 
 func AddElement[T Element](p Container, definition types.ElementDefinition[T]) (T, error) {
 	return definition.Add(p)
+}
+
+// RunWith asynchronously executes a function for progressing a
+// progress indication given by its definition.
+// If the function exists the indicator is closed
+// The runner must accept an Element interface matching the
+// created element type.
+func RunWith[E Element, D ElementDefinition[E], A Element](c Container, def D, runner func(e A)) (E, error) {
+	return RunWithS[E, D](c, def, func(e E) { runner(generics.Cast[A](e)) })
+}
+
+func RunWithS[E Element, D ElementDefinition[E]](c Container, def D, runner func(e E)) (E, error) {
+	elem, err := def.Add(c)
+	if err != nil {
+		return elem, err
+	}
+	go func() {
+		runner(elem)
+		elem.Close()
+	}()
+	return elem, nil
+}
+
+// SpecializedRunner converts a generic runner to a type specific runner.
+func SpecializedRunner[E Element](r func(Element)) func(E) {
+	return func(e E) { r(e) }
+}
+
+// GeneralizedRunner converts a type specific runner to a general runner.
+func GeneralizedRunner[E Element](r func(E)) func(Element) {
+	return func(e Element) { r(generics.Cast[E](e)) }
 }

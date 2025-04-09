@@ -33,19 +33,47 @@ indicators.
 ```golang
 import "github.com/mandelsoft/ttyprogress"
 
-p := ttyprogress.For(os.Stdout)
+func main() {
+	
+    // setup output context
+    p := ttyprogress.For(os.Stdout)
+	
+    // configure indicator (types)
+    bar := ttyprogress.NewBar().
+            SetPredefined(10).
+            SetTotal(500).
+            SetWidth(ttyprogress.PercentTerminalSize(30)).
+            PrependMessage("Downloading...").
+            PrependElapsed().AppendCompleted().
+            AppendFunc(ttyprogress.Amount(units.Bytes(1024)))
 
-...
+    // instantiate bar definition for context
+    // (similar to elem, _ := bar.Add(p) )
+    // and run some process updating the progress on the indicator element.
+    ttyprogress.RunWith(p, bar, func(elem ttyprogress.Bar) {
+        for i := 0; i <= 20; i++ {
+            elem.Set(i * 5 * 5)
+            time.Sleep(time.Millisecond * 500)
+        }
+    })
 
-p.Close()
-
-err := p.Wait(ctx)
+    // close context to indicate, that no new indicators are created anymore
+    p.Close()
+	
+    // wait until all indicators are finished	
+    p.Wait(context.Background())
+}
 ```
 
 Once a `Context` object is created for a writer, the writer MUST NOT be used
 until the progress is finished (for example by calling `Wait`).
 As long a `Close` is not called, it is possible to add progress indicators.
-`Close` MUST be called prior to `Wait`. `Wait` waits until the progrss object is closed and all added indicators are closed and finished.
+
+To create an indicator a definition has to be created and configured by
+calling configuration methods. Every definition can be instantiated
+multiple time by adding it to a context (or group).
+
+`Close` on the context or group MUST be called prior to `Wait`. `Wait` waits until the context object is closed and all added indicators are closed and finished.
 
 Progress indicators are defined by progress indicator definition 
 objects. For every archetype there is one constructor function providing
