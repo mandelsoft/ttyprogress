@@ -17,6 +17,10 @@ type Gapped interface {
 	Gap() string
 }
 
+type FollowUpGapped interface {
+	FollowUpGap() string
+}
+
 type GroupState struct {
 	lock        sync.RWMutex
 	parent      Container
@@ -43,6 +47,16 @@ func NewGroupState(p Container, c specs.GroupBaseConfiguration, closer ...func()
 		blockinfo:   map[*blocks.Block]bool{},
 		closer:      general.Optional(closer...),
 	}
+	if g.followup == "" {
+		g.followup = g.gap
+	}
+	if pg, ok := p.(Gapped); ok {
+		g.pgap = pg.Gap()
+	}
+	if pg, ok := p.(FollowUpGapped); ok {
+		g.pgap = pg.FollowUpGap()
+	}
+
 	return g
 }
 
@@ -69,10 +83,11 @@ func (g *GroupState) AddBlock(b *blocks.Block) error {
 		}
 	} else {
 		n := g.blocks[0]
+		// find last block og group (including nested groups)
 		for n.Next() != nil && n.Next() != n {
 			n = n.Next()
 		}
-		b.SetGap(g.pgap + g.gap) // .SetFollowUpGap(g.pgap + g.followup)
+		// b.SetGap(g.pgap + g.gap) // .SetFollowUpGap(g.pgap + g.followup)
 		g.blocks[0].Blocks().AppendBlock(b, n)
 		if g.notifyCreator != nil {
 			b.RegisterCloser(g.notifyCreator(b))
@@ -90,12 +105,12 @@ func (g *GroupState) finishBlock() {
 	if !g.IsClosed() {
 		return
 	}
-	if g.IsHideOnClose() {
-		for _, b := range g.blocks[1:] {
-			if !b.IsClosed() {
-				return
-			}
+	for _, b := range g.blocks[1:] {
+		if !b.IsClosed() {
+			return
 		}
+	}
+	if g.IsHideOnClose() {
 		for _, b := range g.blocks[1:] {
 			b.Hide()
 		}
@@ -109,6 +124,10 @@ func (g *GroupState) finishBlock() {
 }
 
 func (g *GroupState) Gap() string {
+	return g.pgap + g.gap
+}
+
+func (g *GroupState) FollowUpGap() string {
 	return g.pgap + g.followup
 }
 
@@ -185,10 +204,6 @@ func NewGroupBase[T ProgressInterface](p Container, c specs.GroupBaseConfigurati
 	g.notifyCreator = g.notifyCreator
 	g.closer = g.closeMain
 
-	if pg, ok := p.(Gapped); ok {
-		g.pgap = pg.Gap()
-	}
-
 	if m, n, err := main(g); err != nil {
 		return nil, g.main
 	} else {
@@ -207,6 +222,10 @@ func (g *GroupBase[T]) AddBlock(b *blocks.Block) error {
 		g.main.Start()
 	}
 	return nil
+}
+
+func (g *GroupBase[T]) Gap() string {
+	return g.pgap + g.followup
 }
 
 func (g *GroupBase[T]) createNotifier(b *blocks.Block) func() {

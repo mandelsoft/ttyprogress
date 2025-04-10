@@ -145,18 +145,38 @@ func NewElemBase[I ElementImpl](self object.Self[I, any], p Container, c specs.E
 	if c.GetHide() {
 		b.Hide(c.GetHide())
 	}
+
+	// determine base gaps from parent
 	pgap := ""
+	pfgap := ""
 	if g, ok := p.(Gapped); ok {
 		pgap = g.Gap()
 	}
+	if g, ok := p.(FollowUpGapped); ok {
+		pfgap = g.FollowUpGap()
+	}
+	if pfgap == "" {
+		pfgap = pgap
+	}
+
+	// set gaps incorporating parent gaps
+	gap := ""
+	if t, ok := c.(GapProvider); ok {
+		gap = t.GetGap()
+	}
+	b.SetGap(pgap + gap)
+
+	fgap := ""
+	if t, ok := c.(FollowupGapProvider); ok {
+		fgap = t.GetFollowUpGap()
+	}
+	if fgap == "" {
+		fgap = gap
+	}
+	b.SetFollowUpGap(pfgap + fgap)
+
 	if t, ok := c.(TitleLineProvider); ok && t.GetTitleLine() != "" {
 		b.SetTitleLine(t.GetTitleLine())
-	}
-	if t, ok := c.(GapProvider); ok && t.GetGap() != "" {
-		b.SetGap(pgap + t.GetGap())
-	}
-	if t, ok := c.(FollowupGapProvider); ok && t.GetFollowUpGap() != "" {
-		b.SetFollowUpGap(pgap + t.GetFollowUpGap())
 	}
 	if t, ok := c.(TitleFormatProvider); ok && t.GetTitleFormat() != nil {
 		b.SetTitleFormat(t.GetTitleFormat())

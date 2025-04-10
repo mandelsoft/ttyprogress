@@ -164,10 +164,10 @@ func (w *Block) SetAuto(b ...bool) *Block {
 func (w *Block) SetGap(gap string) *Block {
 	defer w.lock()()
 
-	w.gap = gap
 	if w.followupGap == "" {
 		w.followupGap = gap
 	}
+	w.gap = gap
 	w.Flush()
 	return w
 }
