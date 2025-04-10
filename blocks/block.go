@@ -161,6 +161,11 @@ func (w *Block) SetAuto(b ...bool) *Block {
 	return w
 }
 
+func (w *Block) GetGap() string {
+	defer w.rlock()()
+	return w.gap
+}
+
 func (w *Block) SetGap(gap string) *Block {
 	defer w.lock()()
 

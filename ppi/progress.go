@@ -1,10 +1,13 @@
 package ppi
 
 import (
+	"fmt"
+
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/generics"
 	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttycolors"
+	"github.com/mandelsoft/ttycolors/ansi"
 	"github.com/mandelsoft/ttyprogress/specs"
 	"github.com/mandelsoft/ttyprogress/types"
 )
@@ -57,6 +60,7 @@ type ProgressBaseImpl[T ProgressImpl] struct {
 	prependDecorators []types.Decorator
 	variables         map[string]any
 	autoclose         bool
+	minColumn         int
 
 	tick    bool
 	tickers []types.Ticker
@@ -66,12 +70,13 @@ var _ ElementImpl = (*ProgressBaseImpl[ProgressImpl])(nil)
 
 func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], *ProgressBaseImpl[T], error) {
 	e := &ProgressBaseImpl[T]{
-		tick:      general.Optional(tick...),
-		variables: make(map[string]any),
-		autoclose: c.IsAutoClose(),
+		tick:           general.Optional(tick...),
+		variables:      make(map[string]any),
+		autoclose:      c.IsAutoClose(),
+		minColumn:      c.GetMinVisualizationColumn(),
+		format:         c.GetColor(),
+		progressFormat: c.GetProgressColor(),
 	}
-	e.format = c.GetColor()
-	e.progressFormat = c.GetProgressColor()
 
 	for _, def := range c.GetPrependDecorators() {
 		d := def.CreateDecorator(self.Protected())
@@ -129,6 +134,13 @@ func (b *ProgressBaseImpl[T]) Line() (string, bool) {
 
 	// render prepend functions to the left of the bar
 	seq, sep = appendDecorators(seq, sep, b.prependDecorators)
+
+	if b.minColumn > 0 {
+		l := ansi.CharLen(b.block.GetGap() + b.String(seq...).String())
+		if l < b.minColumn {
+			seq = append(seq, fmt.Sprintf("%*s", b.minColumn-l, ""))
+		}
+	}
 
 	data, done := b.Protected().Visualize()
 	// render main function

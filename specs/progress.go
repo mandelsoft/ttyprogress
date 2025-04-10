@@ -22,6 +22,7 @@ type ProgressDefinition[T any] struct {
 	appendDefs          []DecoratorDefinition
 	prependDefs         []DecoratorDefinition
 	autoclose           bool
+	minColumn           int
 	tick                bool
 }
 
@@ -67,6 +68,15 @@ func (d *ProgressDefinition[T]) IsAutoClose() bool {
 func (d *ProgressDefinition[T]) SetDecoratorFormat(f ...ttycolors.FormatProvider) T {
 	d.nextdecoratorFormat = ttycolors.New(f...)
 	return d.Self()
+}
+
+func (d *ProgressDefinition[T]) SetMinVisualizationColumn(c int) T {
+	d.minColumn = c
+	return d.Self()
+}
+
+func (d *ProgressDefinition[T]) GetMinVisualizationColumn() int {
+	return d.minColumn
 }
 
 // SetColor sets the output format for the progress indicator line
@@ -216,6 +226,9 @@ type ProgressSpecification[T any] interface {
 	// SetDecoratorFormat set the output format for the next decorator.
 	SetDecoratorFormat(col ...ttycolors.FormatProvider) T
 
+	// SetMinVisualizationColumn sets the minimal column for the visualization,
+	SetMinVisualizationColumn(int) T
+
 	// AppendFunc adds a function providing some text appended
 	// to the basic progress indicator.
 	// If there are implicit settings, the offset can be used to
@@ -267,6 +280,7 @@ type ProgressConfiguration interface {
 	GetProgressColor() ttycolors.Format
 	GetPrependDecorators() []DecoratorDefinition
 	GetAppendDecorators() []DecoratorDefinition
+	GetMinVisualizationColumn() int
 }
 
 ////////////////////////////////////////////////////////////////////////////////
