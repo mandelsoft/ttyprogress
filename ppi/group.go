@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"sync"
+	atomic2 "sync/atomic"
 	"time"
 
 	"github.com/mandelsoft/goutils/general"
@@ -29,7 +30,7 @@ type GroupState struct {
 	blockinfo     map[*blocks.Block]bool
 	notifyCreator func(b *blocks.Block) func()
 
-	closed bool
+	closed atomic2.Bool
 }
 
 func NewGroupState(p Container, c specs.GroupBaseConfiguration, closer ...func()) *GroupState {
@@ -53,7 +54,7 @@ func (g *GroupState) AddBlock(b *blocks.Block) error {
 	g.lock.Lock()
 	defer g.lock.Unlock()
 
-	if g.closed {
+	if g.closed.Load() {
 		return nil
 	}
 
@@ -153,31 +154,15 @@ func (g *GroupState) Hide(b ...bool) {
 }
 
 func (g *GroupState) Close() error {
-	g.lock.Lock()
-	defer g.lock.Unlock()
-	if g.closed {
+	if g.closed.Swap(true) {
 		return os.ErrClosed
 	}
-	g.closed = true
-
-	go func() {
-		for _, b := range g.blocks[1:] {
-			b.Wait(nil)
-		}
-
-		if g.blocks[0].IsHideOnClose() {
-			for _, b := range g.blocks[1:] {
-				b.Hide()
-			}
-		}
-	}()
+	g.finishBlock()
 	return nil
 }
 
 func (g *GroupState) IsClosed() bool {
-	g.lock.RLock()
-	defer g.lock.RUnlock()
-	return g.closed
+	return g.closed.Load()
 }
 
 func (g *GroupState) Wait(ctx context.Context) error {
