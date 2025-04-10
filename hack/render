@@ -1,17 +1,38 @@
 #!/bin/bash
 
+root="$(dirname "$BASH_SOURCE")"
+
+record=
 if [ "$1" == '-r' ]; then
   shift
-  echo record
-  hack/record "$1"
+  record=X
 fi
+
+dir=
+for i in examples/*/$1  examples/*; do
+  if [ -f "$i/main.go" ]; then
+    dir="$i"
+    break
+  fi
+done
+if [ -z "$dir" ]; then
+  echo "$1 not found"
+  exit 1
+fi
+
 N=/tmp/merge.yml
 OPT=
-if [ -f examples/progress/$1/config.yaml ]; then
-  OPT=examples/progress/$1/config.yaml
+if [ -f "$dir"/config.yaml ]; then
+  OPT="$dir"/config.yaml
 fi
+
+if [ -n "$record" ]; then
+  echo record "$dir ${@:2}"
+  terminalizer record local/$1 -k -d "go run ./$dir ${@:2}"
+fi
+
 echo merge $OPT to "$N"
-spiff merge --json hack/data/template.yaml local/$1.yml $OPT> "$N"
+spiff merge --json "$root/data/template.yaml" local/$1.yml $OPT> "$N"
 echo render
-terminalizer render "$N" -o "examples/progress/$1/demo.gif"
-#rm "$N"
+terminalizer render "$N" -o "$dir/demo.gif"
+
