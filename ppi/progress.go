@@ -33,6 +33,12 @@ type ProgressBase[T ProgressImpl] struct {
 	elem *ProgressBaseImpl[T]
 }
 
+func (b *ProgressBase[T]) SetProgressColor(fmt ttycolors.FormatProvider) {
+	b.elem.lock.Lock()
+	defer b.elem.lock.Unlock()
+	b.elem.SetProgressColor(fmt)
+}
+
 func (b *ProgressBase[T]) SetVariable(name string, value any) {
 	b.elem.lock.Lock()
 	defer b.elem.lock.Unlock()
@@ -102,6 +108,15 @@ func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c sp
 	e.ElemBaseImpl = s
 	e.tick = general.OptionalDefaulted(c.GetTick(), tick...)
 	return &ProgressBase[T]{b, e}, e, nil
+}
+
+func (b *ProgressBaseImpl[T]) SetProgressColor(fmt ttycolors.FormatProvider) {
+	if fmt == nil {
+		b.progressFormat = nil
+	} else {
+		b.progressFormat = fmt.Format()
+	}
+	b.Protected().Flush()
 }
 
 func (b *ProgressBaseImpl[T]) SetVariable(name string, value any) {

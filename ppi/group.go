@@ -9,6 +9,7 @@ import (
 
 	"github.com/mandelsoft/goutils/general"
 	"github.com/mandelsoft/goutils/optionutils"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/blocks"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -231,6 +232,10 @@ func (g *GroupBase[T]) Gap() string {
 func (g *GroupBase[T]) createNotifier(b *blocks.Block) func() {
 	g.notifier.Add(g.main, b)
 	return func() { g.notifier.Done(g.main, b) }
+}
+
+func (g *GroupBase[T]) SetProgressColor(f ttycolors.FormatProvider) {
+	g.main.SetProgressColor(f)
 }
 
 func (g *GroupBase[T]) SetVariable(name string, value any) {

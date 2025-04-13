@@ -101,6 +101,7 @@ type ElementState interface {
 // progress element (like a Bar or a Spinner).
 type ProgressElement interface {
 	Element
+	SetProgressColor(fmt ttycolors.FormatProvider)
 	SetVariable(name string, value any)
 	GetVariable(name string) any
 }

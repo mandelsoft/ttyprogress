@@ -8,6 +8,7 @@ import (
 
 	"github.com/mandelsoft/goutils/sliceutils"
 	"github.com/mandelsoft/goutils/stringutils"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -90,6 +91,10 @@ func newNestedSteps(p Container, c specs.NestedStepsConfiguration) (NestedSteps,
 
 func (n *_NestedStepsImpl) SetFinal(m string) {
 	n.main.SetFinal(m)
+}
+
+func (g *_NestedStepsImpl) SetProgressColor(f ttycolors.FormatProvider) {
+	g.main.SetProgressColor(f)
 }
 
 func (n *_NestedStepsImpl) SetVariable(name string, value any) {

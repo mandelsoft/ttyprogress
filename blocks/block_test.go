@@ -21,13 +21,15 @@ var _ = Describe("Blocks Test Environment", func() {
 	})
 
 	It("assigns block", func() {
-		b := blocks.NewBlock(3)
+		b := blocks.NewBlock(3).SetAuto()
 
 		Expect(b.Write([]byte("test\n"))).To(Equal(5))
 		MustBeSuccessful(blks.AddBlock(b))
 		ExpectError(blks.AddBlock(b)).To(Equal(blocks.ErrAlreadyAssigned))
 		MustBeSuccessful(blks.Flush())
 		time.Sleep(blocks.MIN_UPDATE_INTERVAL * 2)
-		Expect(buf.String()).To(Equal("test\n"))
+
+		s := buf.String()
+		Expect(s).To(Equal("test\n"))
 	})
 })

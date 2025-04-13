@@ -42,7 +42,7 @@ type _anongroup struct {
 	*ppi.GroupState
 }
 
-var _ Group = (*_group[specs.ProgressInterface])(nil)
+var _ AnonymousGroup = (*_anongroup)(nil)
 
 func newAnonymousGroup(p Container, c *AnonymousGroupDefinition) (AnonymousGroup, error) {
 	g := &_anongroup{}

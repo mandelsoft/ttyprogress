@@ -90,9 +90,9 @@ func (w *Blocks) Done() <-chan struct{} {
 func (w *Blocks) _flush() {
 	w.lock.Lock()
 	defer w.lock.Unlock()
-	clearLines(w.out, w.lineCount)
-	w.flushAll()
-	// w.deltaFlush()
+	// clearLines(w.out, w.lineCount)
+	// w.flushAll()
+	w.deltaFlush()
 }
 
 func (w *Blocks) listen() {
