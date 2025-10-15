@@ -278,7 +278,7 @@ func (w *Blocks) flushAll() error {
 		}
 	}
 	w.lineCount = lines
-	return err
+	return nil
 }
 
 func (w *Blocks) deltaFlush() error {
@@ -309,7 +309,7 @@ func (w *Blocks) deltaFlush() error {
 		}
 	}
 	w.lineCount = complete
-	return err
+	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +340,7 @@ func (r *request) Request() {
 }
 
 func (r *request) Wait(ctx context.Context) error {
-	if err = r.sema.Acquire(ctx, 1); err != nil {
+	if err := r.sema.Acquire(ctx, 1); err != nil {
 		return err
 	}
 	r.lock.Lock()

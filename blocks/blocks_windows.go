@@ -5,6 +5,7 @@ package blocks
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"syscall"
 	"unsafe"
