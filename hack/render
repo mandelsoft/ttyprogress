@@ -28,6 +28,9 @@ fi
 
 if [ -n "$record" ]; then
   echo record "$dir ${@:2}"
+  #for i in terminalizer record local/$1 -k -d "go run ./$dir ${*:2}"; do
+  #  echo "$i"
+  #done
   terminalizer record local/$1 -k -d "go run ./$dir ${@:2}"
 fi
 

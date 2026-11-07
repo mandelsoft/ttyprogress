@@ -1,0 +1,6 @@
+config:
+  rows: 10
+  frameBox:
+    title: Text Based Spinner Indicators
+  theme:
+    blue: "#8080ff"

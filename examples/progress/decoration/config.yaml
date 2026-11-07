@@ -1,0 +1,8 @@
+config:
+  rows: 16
+  frameBox:
+    title: Phase Decorated Progress Bar
+  theme:
+    blue: "#8080ff"
+    red: "#ff0000"
+

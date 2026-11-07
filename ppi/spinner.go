@@ -39,7 +39,7 @@ var _ SpinnerInterface = (*SpinnerBaseImpl[SpinnerImpl])(nil)
 
 func NewSpinnerBase[T SpinnerImpl](self object.Self[T, any], p Container, c specs.SpinnerConfiguration, view int, closer func()) (*SpinnerBase[T], *SpinnerBaseImpl[T], error) {
 	e := &SpinnerBaseImpl[T]{
-		phases:  c.GetPhases(),
+		phases:  c.GetPhases().Dup(), // every element uses its own state
 		done:    c.GetDone(),
 		pending: c.GetPending(),
 		speed:   specs.NewSpeed(c.GetSpeed()),

@@ -2,6 +2,7 @@ package ttyprogress
 
 import (
 	"github.com/mandelsoft/object"
+	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/ppi"
 	"github.com/mandelsoft/ttyprogress/specs"
 )
@@ -20,6 +21,19 @@ func NewTextSpinner(set ...int) *TextSpinnerDefinition {
 	if len(set) > 0 {
 		d.SetPredefined(set[0])
 	}
+	return d
+}
+
+func NewTextFormatSpinner(text string, fmts ...ttycolors.FormatProvider) *TextSpinnerDefinition {
+	var f []ttycolors.FormatProvider
+	if len(fmts) > 0 {
+		f = fmts
+	} else {
+		f = []ttycolors.FormatProvider{ttycolors.FmtIdColor(238), ttycolors.FmtIdColor(243), ttycolors.FmtIdColor(238), ttycolors.FmtIdColor(250)}
+	}
+	d := &TextSpinnerDefinition{}
+	d.TextSpinnerDefinition = specs.NewTextSpinnerDefinition(specs.NewSelf(d))
+	d.SetPhases(specs.NewFormatPhases(text, f...))
 	return d
 }
 

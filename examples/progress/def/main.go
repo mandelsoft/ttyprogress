@@ -38,7 +38,8 @@ func main() {
 	run(p, bar2)
 	p.Close()
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
 	p.Wait(ctx)
 
 }

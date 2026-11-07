@@ -1,5 +1,9 @@
 package specs
 
+import (
+	"unicode/utf8"
+)
+
 type ScrollingSpinnerInterface interface {
 	ProgressInterface
 }
@@ -25,16 +29,10 @@ func NewScrollingSpinnerDefinition[T any](self Self[T], text string, length int)
 		done:               Done,
 	}
 	t := text + " "
-	if len(t) <= length {
+	if utf8.RuneCountInString(t) <= length {
 		t = t + " " + text
 	}
-
-	var phases []string
-	s := t + t
-	for i := 0; i < len(t); i++ {
-		phases = append(phases, s[i:i+length])
-	}
-	d.phases = NewStaticPhases(phases...)
+	d.phases = NewRollingTextPhases(t, length)
 	return d
 }
 

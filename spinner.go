@@ -25,6 +25,13 @@ func NewSpinner(set ...int) *SpinnerDefinition {
 	return d
 }
 
+func NewPhasesSpinner(phases specs.Phases) *SpinnerDefinition {
+	d := &SpinnerDefinition{}
+	d.SpinnerDefinition = specs.NewSpinnerDefinition(specs.NewSelf(d))
+	d.SetPhases(phases)
+	return d
+}
+
 func (d *SpinnerDefinition) GetGroupNotifier() specs.GroupNotifier {
 	return &specs.VoidGroupNotifier{}
 }

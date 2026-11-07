@@ -1,0 +1,17 @@
+{
+  "format": "ttyframes/v1",
+  "frames": [405,404,405],
+  "states": [
+    {"text":"progressbar                Ns [==========] N%","runs":[{"start":0}]},
+    {"text":"progressbar downloading    Ns [----------]   N%","runs":[{"start":0}]},
+    {"text":"progressbar installing     Ns [=====>----]  N%","runs":[{"start":0}]},
+    {"text":"progressbar unpacking      Ns [==>-------]  N%","runs":[{"start":0}]},
+    {"text":"progressbar verifying      Ns [=======>--]  N%","runs":[{"start":0}]}
+  ],
+  "transitions": [
+    {"from":{"text":"progressbar downloading    Ns [----------]   N%","runs":[{"start":0}]},"to":{"text":"progressbar unpacking      Ns [==>-------]  N%","runs":[{"start":0}]}},
+    {"from":{"text":"progressbar installing     Ns [=====>----]  N%","runs":[{"start":0}]},"to":{"text":"progressbar verifying      Ns [=======>--]  N%","runs":[{"start":0}]}},
+    {"from":{"text":"progressbar unpacking      Ns [==>-------]  N%","runs":[{"start":0}]},"to":{"text":"progressbar installing     Ns [=====>----]  N%","runs":[{"start":0}]}},
+    {"from":{"text":"progressbar verifying      Ns [=======>--]  N%","runs":[{"start":0}]},"to":{"text":"progressbar                Ns [==========] N%","runs":[{"start":0}]}}
+  ]
+}

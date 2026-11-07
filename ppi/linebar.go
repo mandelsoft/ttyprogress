@@ -84,7 +84,7 @@ func (b *LineBarBaseImpl[T, V]) Line() (string, bool) {
 	length := ansi.CharLen(l)
 	completedWidth := int(float64(length) * (b.Protected().CompletedPercent() / 100.00))
 
-	first, second := ansi.SplitAt(l, completedWidth)
-	return ttycolors.Sequence(ttycolors.Reverse(first), second).String(), done
+	first, second := ttycolors.SplitAt(l, completedWidth)
+	return b.String(ttycolors.Reverse(first), second).String(), done
 
 }

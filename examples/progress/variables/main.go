@@ -26,9 +26,11 @@ func main() {
 	for i, b := range bars {
 		bar, _ := def.SetPredefined(b).Add(p)
 		bar.SetVariable("name", fmt.Sprintf("task %d", i+1))
+		// show the initial temperature from the beginning
+		temp := 10
+		bar.SetVariable("temperature", fmt.Sprintf("[%d°]", temp))
 		bar.Start()
 		go func() {
-			temp := 10
 			for i := 0; i < 10; i++ {
 				temp += rand.IntN(5) - 2
 				bar.SetVariable("temperature", fmt.Sprintf("[%d°]", temp))

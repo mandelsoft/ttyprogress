@@ -2,12 +2,9 @@ package specs
 
 import (
 	"fmt"
-	"slices"
-	"sync"
+	"strings"
 	"time"
 
-	"github.com/mandelsoft/goutils/sliceutils"
-	"github.com/mandelsoft/goutils/stringutils"
 	"github.com/mandelsoft/ttycolors"
 	"github.com/mandelsoft/ttyprogress/types"
 	"github.com/mandelsoft/ttyprogress/units"
@@ -80,136 +77,98 @@ func Formatted(def DecoratorDefinition, f ...ttycolors.FormatProvider) Decorator
 ////////////////////////////////////////////////////////////////////////////////
 
 type scrollingText struct {
-	gap    string
-	length int
-	text   string
-	offset int
-	speed  *Speed
+	textWindow
+	rolling
+	speed *Speed
 }
 
-var _ types.Ticker
+var _ types.Ticker = (*scrollingText)(nil)
 
 func (s *scrollingText) Tick() bool {
 	if s.speed.Tick() {
-		s.offset = (s.offset + 1) % (len(s.text) + s.length)
+		s.rolling.Incr()
 		return true
 	}
 	return false
 }
 
 func (s *scrollingText) Decorate() any {
-	return (s.text + s.text)[s.offset : s.offset+s.length]
+	return ttycolors.Sequence(s.window(s.offset))
 }
 
 type scrollingTextDef struct {
 	text   string
+	n      int // number of characters of text
 	length int
 	speed  int
 }
 
 func (s *scrollingTextDef) CreateDecorator(e ElementState) types.Decorator {
-	t := s.text
-	if len(s.text) <= s.length {
-		return Message(stringutils.PadRight(t, s.length, ' ')).CreateDecorator(e)
+	if s.n <= s.length {
+		return Message(s.text + strings.Repeat(" ", s.length-s.n)).CreateDecorator(e)
 	}
-	t += " "
 	return &scrollingText{
-		gap:    fmt.Sprintf("%-*s", s.length, " "),
-		length: s.length,
-		text:   t,
-		speed:  NewSpeed(s.speed),
+		// the text followed by a gap
+		textWindow: newTextWindow(s.text+" ", s.n+1, s.length),
+		rolling:    rolling{n: s.n + 1},
+		speed:      NewSpeed(s.speed),
 	}
 }
 
 // ScrollingText provides a scrolling text decorator.
 // Scrolling is only done, if the text is longer than the
-// specified text size. Otherwise, static padded text is shown.
+// specified text size (in characters). Otherwise, static
+// padded text is shown. Output formats of the text are kept,
+// other escape sequences are removed.
 func ScrollingText(text string, length int) DecoratorDefinition {
+	t, n := formattedText(text)
 	return &scrollingTextDef{
 		length: length,
-		text:   text,
+		text:   t,
+		n:      n,
 		speed:  3,
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-type Cycle[T any] struct {
-	lock  sync.Mutex
-	elems []T
-	cnt   int
-}
-
-func NewCycle[T any](elems []T) *Cycle[T] {
-	return &Cycle[T]{elems: slices.Clone(elems)}
-}
-
-func (s *Cycle[T]) Incr() {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	s.cnt++
-	if s.cnt >= len(s.elems) {
-		s.cnt = 0
-	}
-}
-
-func (s *Cycle[T]) Get() T {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	return s.elems[s.cnt]
-}
-
-type Phases interface {
-	Incr()
-	Get() ttycolors.String
-}
-
-var _ Phases = (*Cycle[ttycolors.String])(nil)
-
-func NewStaticPhases(phases ...string) Phases {
-	return NewCycle[ttycolors.String](sliceutils.Transform(phases, String))
-}
-
-func NewStaticFormattedPhases(phases ...ttycolors.String) Phases {
-	return NewCycle(phases)
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-// NewFormatPhases creates Phases using the same text with a sequence of formats.
-func NewFormatPhases(s string, fmts ...ttycolors.FormatProvider) Phases {
-	var phases []ttycolors.String
-
-	for _, f := range fmts {
-		phases = append(phases, f.Format().String(s))
-	}
-	return NewStaticFormattedPhases(phases...)
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-type nestedPhases struct {
+type phasesText struct {
 	phases Phases
-	fmts   *Cycle[ttycolors.Format]
+	speed  *Speed
 }
 
-// NewNestedFormatPhases creates phases based on a combination
-// of bases phases formatted by a sequence of output formats.
-// The number of phases for both parts may be different.
-func NewNestedFormatPhases(p Phases, fmts ...ttycolors.FormatProvider) Phases {
-	return &nestedPhases{
-		phases: p,
-		fmts:   NewCycle[ttycolors.Format](sliceutils.Transform(fmts, func(f ttycolors.FormatProvider) ttycolors.Format { return f.Format() })),
+var _ types.Ticker = (*phasesText)(nil)
+
+func (s *phasesText) Tick() bool {
+	if s.speed.Tick() {
+		s.phases.Incr()
+		return true
+	}
+	return false
+}
+
+func (s *phasesText) Decorate() any {
+	return s.phases.Get()
+}
+
+type phasesDef struct {
+	phases Phases
+	speed  int
+}
+
+// PhasesDecoration provides a decorator bases on Phases.
+// Every decorator created for an element uses its own copy
+// of the phases.
+func PhasesDecoration(phases Phases, speed int) DecoratorDefinition {
+	return &phasesDef{
+		phases: phases,
+		speed:  speed,
 	}
 }
 
-func (p *nestedPhases) Incr() {
-	p.phases.Incr()
-	p.fmts.Incr()
-}
-
-func (p *nestedPhases) Get() ttycolors.String {
-	return p.fmts.Get().String(p.phases.Get())
+func (s *phasesDef) CreateDecorator(e ElementState) types.Decorator {
+	return &phasesText{
+		phases: s.phases.Dup(),
+		speed:  NewSpeed(s.speed),
+	}
 }

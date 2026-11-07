@@ -163,6 +163,27 @@ spinner := ttyprogress.NewSpinner().
 
 This example can be found in [examples/progress/spinner/main.go](examples/progress/spinner/main.go).
 
+#### Phases for Spinners
+
+With the generic `ttyprogress.NewPhasesSpinner(phases specs.Phases)` it is possible to create a spinner with specific used defined phases implementing the `specs.Phaces` interface.
+
+There are several standard implementations for text-based phases in package`spec`:
+- *Format Phases*: a given text with cycling `ttycolors.FormatProvider`s. (`NewFormatPhases(s string, fmts ...ttycolors.FormatProvider)`)
+- *Rolling Text Phases*: roll a text over a smaller window (`NewRollingTextPhases(text string, length int)`)
+- *Rolling Format Phases*: part of the text if rolled with a given format. (`NewRollingTextFmtPhases(text string, length int, fmt ttycolors.FormatProvider)`)
+- *Bouncing Text Phases*: Bouncing a text over a larder window. (`NewBouncingTextPhases(text string, length int)`)
+- *Bouncing Format Phases*: Bouncing part of a text with a given format. (`NewBouncingTextFmtPhases(text string, length int, fmt ttycolors.Format)`)
+
+Be aware, that the text must not contain own formatting sequences, because substrings are taken.
+
+<p align="center">
+  <img src="examples/progress/textbasedspinner/demo.gif" alt="Text-based Spinner Demo" title="Text-based Spinner Demo" />
+</p>
+
+This example can be found in [examples/progress/textbasedspinner/main.go](examples/progress/textbasedspinner/main.go).
+
+Additionally, this package contains some helper to provide your own phases.
+
 ### Scrolling Text Spinners
 
 A scrolling text spinner is basically a spinner.
@@ -465,14 +486,23 @@ func main() {
 		AppendElapsed().
 		PrependMessage("working on").
 		PrependVariable("name").
+		PrependVariable("temperature").
 		PrependMessage("...")
 
 	for i, b := range bars {
 		bar, _ := def.SetPredefined(b).Add(p)
 		bar.SetVariable("name", fmt.Sprintf("task %d", i+1))
+		// show the initial temperature from the beginning
+		temp := 10
+		bar.SetVariable("temperature", fmt.Sprintf("[%d°]", temp))
 		bar.Start()
 		go func() {
-			time.Sleep(time.Second * time.Duration(10+rand.Int()%20))
+			for i := 0; i < 10; i++ {
+				temp += rand.IntN(5) - 2
+				bar.SetVariable("temperature", fmt.Sprintf("[%d°]", temp))
+				time.Sleep(time.Second * time.Duration(rand.IntN(3)))
+			}
+			bar.SetVariable("temperature", "")
 			bar.Close()
 		}()
 	}
@@ -508,10 +538,24 @@ But it can be configured, explicitly, by using the `EnableColors` method.
 For example
 
 ```golang
-p := ttyprogress.New(os.StdOut).EnableColors(false)
+p := ttyprogress.For(os.Stdout).EnableColors(false)
 ```
 
 disables the output formatting, even if the standard output is directed to a terminal.
+
+Disabling the output formatting affects all output formats configured
+for the indicators. Texts provided by the application, for example messages,
+strings returned by decorators or texts written to text views, are never
+modified: output format sequences already contained in such texts are kept.
+Therefore, decorators should provide `ttycolors.String` objects instead of
+already formatted strings, which are rendered with the settings of the
+`Context`. Already formatted strings can be passed through the method
+`StripIfDisabled` of the `ttycolors.TTYContext` used by the `Context`,
+which removes their output format sequences, if the output formatting is disabled:
+
+```golang
+text.Write([]byte(p.GetTTYContext().StripIfDisabled(formatted)))
+```
 
 <p align="center">
   <img src="examples/progress/colors/demo.gif" alt="Colorized Progress Bar Demo" title="Colorized Progress Bar Demo" />
@@ -527,6 +571,21 @@ support the `SetViewFormat` method to configure the output format for
 the text view to set the format for the complete text independently of the
 `Write` operations.
 
+
+### Checking the Behaviour of the Examples
+
+The behaviour of the examples (the lines and their output formats shown during the
+animation) is recorded in the files `expected.ttyframes` in the example directories
+and can be checked with the tool [ttyframes](https://github.com/mandelsoft/ttyframes),
+for example after changes of the libraries:
+
+```
+make check-behaviour   # compare the actual behaviour with the recorded one
+make behaviour         # record the behaviour again
+```
+
+The check distinguishes differences caused by the timing of the animations from
+changed output.
 
 ## Acknowledgment of Prior Work
 

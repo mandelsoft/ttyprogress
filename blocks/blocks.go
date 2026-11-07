@@ -74,7 +74,7 @@ func (w *Blocks) IsColorsEnabled() bool {
 
 func (w *Blocks) GetTTYGontext() ttycolors.TTYContext {
 	if w == nil {
-		return ttycolors.NewContext()
+		return ttycolors.NewSharedContext()
 	}
 	return w.ttyctx
 }

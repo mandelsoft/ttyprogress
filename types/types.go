@@ -19,6 +19,13 @@ type String ttycolors.String
 // The returned type may be a string or a ttycolors.String. All other types
 // are converted to a string value by calling the method String() or using the Go native
 // conversion (print format %v).
+// A ttycolors.String is rendered with the settings of the progress context.
+// Strings are never modified, output format sequences contained in them are
+// kept, even if the output formatting is disabled for the progress context.
+// Therefore, a ttycolors.String should be preferred for formatted results.
+// Otherwise, the method StripIfDisabled of the ttycolors.TTYContext of the
+// progress context can be used to remove output format sequences from
+// already formatted strings, if the output formatting is disabled.
 type DecoratorFunc func(b ElementState) any
 
 func (d DecoratorFunc) CreateDecorator(b ElementState) Decorator {

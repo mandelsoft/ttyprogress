@@ -1,6 +1,9 @@
 package ttyprogress
 
 import (
+	"strings"
+	"unicode/utf8"
+
 	"github.com/mandelsoft/goutils/stringutils"
 	"github.com/mandelsoft/object"
 	"github.com/mandelsoft/ttyprogress/specs"
@@ -68,10 +71,10 @@ func newSteps(p Container, c specs.StepsConfiguration) (Steps, error) {
 func (s *_StepsImpl) GetCurrentStep() string {
 	c := s.Current()
 	if c == 0 && !s.IsStarted() {
-		return stringutils.PadRight("", len(s.steps[0]), ' ')
+		return strings.Repeat(" ", utf8.RuneCountInString(s.steps[0]))
 	}
 	if c < len(s.steps) {
 		return s.steps[c]
 	}
-	return stringutils.PadRight("", len(s.steps[0]), ' ')
+	return strings.Repeat(" ", utf8.RuneCountInString(s.steps[0]))
 }

@@ -1,0 +1,10 @@
+{
+  "format": "ttyframes/v1",
+  "frames": [4,4,4],
+  "states": [
+    {"text":"Downloading 1","runs":[{"start":0}]},
+    {"text":"Downloading 2","runs":[{"start":0}]},
+    {"text":"Downloading 3","runs":[{"start":0}]}
+  ],
+  "transitions": []
+}

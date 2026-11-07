@@ -202,7 +202,7 @@ func NewGroupBase[T ProgressInterface](p Container, c specs.GroupBaseConfigurati
 	g := &GroupBase[T]{
 		GroupState: *NewGroupState(p, c),
 	}
-	g.notifyCreator = g.notifyCreator
+	g.notifyCreator = g.createNotifier
 	g.closer = g.closeMain
 
 	if m, n, err := main(g); err != nil {
