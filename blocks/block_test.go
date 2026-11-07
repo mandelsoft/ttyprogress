@@ -32,4 +32,21 @@ var _ = Describe("Blocks Test Environment", func() {
 		s := buf.String()
 		Expect(s).To(Equal("test\n"))
 	})
+
+	It("uses the default view for a view of 0", func() {
+		render := func(b *blocks.Block) string {
+			b.SetAuto()
+			buf := bytes.NewBuffer(nil)
+			blks := blocks.New(buf)
+			for i := 0; i < 15; i++ {
+				b.Write([]byte("line\n"))
+			}
+			MustBeSuccessful(blks.AddBlock(b))
+			MustBeSuccessful(blks.Flush())
+			time.Sleep(blocks.MIN_UPDATE_INTERVAL * 2)
+			return buf.String()
+		}
+		Expect(render(blocks.NewBlock(0))).To(Equal(render(blocks.NewBlock())))
+		Expect(render(blocks.NewBlock(0))).NotTo(Equal(render(blocks.NewBlock(3))))
+	})
 })

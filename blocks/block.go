@@ -69,7 +69,7 @@ type block = Block
 func NewBlock(view ...int) *Block {
 	return &Block{
 		startline: true,
-		view:      general.OptionalDefaulted(DefaultView, view...),
+		view:      general.OptionalNonZeroDefaulted(DefaultView, view...),
 		done:      make(chan struct{})}
 }
 

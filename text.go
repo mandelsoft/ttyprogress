@@ -26,7 +26,7 @@ type TextDefinition struct {
 func NewText(v ...int) *TextDefinition {
 	d := &TextDefinition{}
 	d.TextDefinition = specs.NewTextDefinition(specs.NewSelf(d))
-	lines := general.Optional(v...)
+	lines := general.OptionalNonZero(v...)
 	if lines > 0 {
 		d.SetView(lines)
 	}

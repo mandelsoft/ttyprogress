@@ -69,7 +69,7 @@ func NewBarBase[T BarImpl[V], V any](self object.Self[T, any], p Container, c sp
 		pending: c.GetPending(),
 	}
 
-	b, s, err := NewProgressBase[T](self, p, c, 1, closer, general.Optional(tick...))
+	b, s, err := NewProgressBase[T](self, p, c, 1, closer, general.OptionalNonZero(tick...))
 	if err != nil {
 		return nil, nil, err
 	}

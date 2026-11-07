@@ -54,6 +54,10 @@ func New(opt ...io.Writer) *Blocks {
 
 	if f, ok := w.out.(*os.File); ok {
 		w.ttyctx = ttycolors.NewContext(ttycolors.IsTerminal(f))
+	} else {
+		// other writers are no terminal, output formatting
+		// can be enabled explicitly (see EnableColors).
+		w.ttyctx = ttycolors.NewContext(false)
 	}
 	termWidth, _ := getTermSize()
 	if termWidth != 0 {

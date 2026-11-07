@@ -76,7 +76,7 @@ var _ ElementImpl = (*ProgressBaseImpl[ProgressImpl])(nil)
 
 func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c specs.ProgressConfiguration, view int, closer func(), tick ...bool) (*ProgressBase[T], *ProgressBaseImpl[T], error) {
 	e := &ProgressBaseImpl[T]{
-		tick:           general.Optional(tick...),
+		tick:           general.OptionalNonZero(tick...),
 		variables:      make(map[string]any),
 		autoclose:      c.IsAutoClose(),
 		minColumn:      c.GetMinVisualizationColumn(),
@@ -106,7 +106,7 @@ func NewProgressBase[T ProgressImpl](self object.Self[T, any], p Container, c sp
 		return nil, nil, err
 	}
 	e.ElemBaseImpl = s
-	e.tick = general.OptionalDefaulted(c.GetTick(), tick...)
+	e.tick = general.OptionalNonZeroDefaulted(c.GetTick(), tick...)
 	return &ProgressBase[T]{b, e}, e, nil
 }
 

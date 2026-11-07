@@ -63,6 +63,6 @@ func (d *BarDefinition) AddWithTotal(c Container, total int) (Bar, error) {
 
 // newBar returns a new progress bar
 func newBar(p Container, c specs.BarConfiguration[int], total ...int) (Bar, error) {
-	b, _, err := newIntBar[IntBarImpl](p, c, general.OptionalDefaulted(c.GetTotal(), total...), nil)
+	b, _, err := newIntBar[IntBarImpl](p, c, general.OptionalNonZeroDefaulted(c.GetTotal(), total...), nil)
 	return b, err
 }

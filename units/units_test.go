@@ -38,4 +38,9 @@ var _ = Describe("Units Test Environment", func() {
 			Expect(u(999 * 1000 * 1000 * 1000)).To(Equal("999000 km"))
 		})
 	})
+
+	It("uses scale 1 for a scale of 0", func() {
+		Expect(units.Bytes(0)(1025)).To(Equal(units.Bytes()(1025)))
+		Expect(units.Bytes(0)(1025)).To(Equal("1 KB"))
+	})
 })

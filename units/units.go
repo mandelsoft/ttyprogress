@@ -14,7 +14,7 @@ func Plain(n int) string {
 
 func Scaled(v int, factor int64, units []string, scale ...int64) string {
 	var s int64
-	n := int64(v) * general.OptionalDefaulted[int64](int64(1), scale...)
+	n := int64(v) * general.OptionalNonZeroDefaulted[int64](int64(1), scale...)
 	for _, u := range units {
 		n, s = n/factor, n
 		if n == 0 {
