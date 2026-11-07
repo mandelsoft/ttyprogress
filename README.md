@@ -249,6 +249,50 @@ bar := ttyprogress.NewLineBar().
 
 This example can be found in [examples/progress/linebar/main.go](examples/progress/linebar/main.go).
 
+By default, the completed part of the line is shown in reverse video.
+`SetCompletedFormat` sets another output format for the completed part,
+and `SetRemainingFormat` an output format for the remaining part (which
+is not formatted by default). Several formats are composed. The formats
+apply to all output formats not set by the content of the line, for example,
+a foreground color set by a decorator format is kept:
+
+```golang
+bar := ttyprogress.NewLineBar().
+		SetCompletedFormat(ttycolors.FmtBgBlue).
+		SetRemainingFormat(ttycolors.FmtDim)
+```
+
+The following example marks the completed part with a yellow underline
+instead of reverse video:
+
+```golang
+p := ttyprogress.For(os.Stdout)
+p.GetTTYContext().EnableFeatures(ttycolors.FeatureUnderlineColor)
+
+bar, _ := ttyprogress.NewLineBar().
+		SetTotal(500).
+		PrependMessage("Downloading...").
+		PrependElapsed().AppendCompleted().SetDecoratorFormat(ttycolors.FmtGreen).
+		AppendFunc(ttyprogress.Amount(units.Bytes(1024))).
+		SetCompletedFormat(ttycolors.FmtUnderline, ttycolors.FmtUnderlineIdColor(ansi.COLOR_ID_YELLOW)).
+		Add(p)
+```
+
+Underline colors are an *extended terminal feature* of package `ttycolors`
+(`ttycolors.FeatureUnderlineColor`). Such features are not supported by all
+terminals and cannot be detected, therefore they are disabled by default.
+Output formats requiring a disabled feature are ignored (here, the underline
+is shown in the default color). The feature is enabled for the
+`ttycolors.TTYContext` used by the `Context`, as shown above. Alternatively,
+it can be enabled globally with `ttycolors.EnableFeatures(...)` before the
+`Context` is created, because a new context gets a copy of the global settings.
+
+There is no demo image for this example, because the terminal emulator used
+to render the demo images ([terminalizer](https://github.com/faressoft/terminalizer))
+does not support underline colors.
+
+This example can be found in [examples/progress/linebar2/main.go](examples/progress/linebar2/main.go).
+
 ### Progress Bar for Steps
 
 If there is a fixed set of sequential steps the progress can be indicated with a `Steps` indicator archetype.

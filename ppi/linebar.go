@@ -32,6 +32,12 @@ type LineBarBaseImpl[T BarImpl[V], V any] struct {
 
 	resetOnFinished bool
 
+	// completedFormat is the output format for the completed part.
+	completedFormat ttycolors.Format
+	// remainingFormat is the output format for the remaining
+	// part, nil for no output format.
+	remainingFormat ttycolors.Format
+
 	// total of the total  for the progress bar.
 	total V
 
@@ -52,6 +58,8 @@ func NewLineBarBase[T BarImpl[V], V any](self object.Self[T, any], p Container, 
 		total:           c.GetTotal(),
 		pending:         c.GetPending(),
 		resetOnFinished: c.IsResetOnFinished(),
+		completedFormat: c.GetCompletedFormat(),
+		remainingFormat: c.GetRemainingFormat(),
 	}
 
 	b, s, err := NewProgressBase[T](self, p, c, 1, closer, general.OptionalNonZero(tick...))
@@ -85,6 +93,10 @@ func (b *LineBarBaseImpl[T, V]) Line() (string, bool) {
 	completedWidth := int(float64(length) * (b.Protected().CompletedPercent() / 100.00))
 
 	first, second := ttycolors.SplitAt(l, completedWidth)
-	return b.String(ttycolors.Reverse(first), second).String(), done
+	var remaining any = second
+	if b.remainingFormat != nil {
+		remaining = b.remainingFormat.String(second)
+	}
+	return b.String(b.completedFormat.String(first), remaining).String(), done
 
 }

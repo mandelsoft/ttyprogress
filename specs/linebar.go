@@ -2,6 +2,7 @@ package specs
 
 import (
 	"github.com/mandelsoft/goutils/optionutils"
+	"github.com/mandelsoft/ttycolors"
 )
 
 type LineBarInterface interface {
@@ -18,6 +19,8 @@ type LineBarDefinition[T, V any] struct {
 	autoclose       bool
 	resetOnFinished bool
 	total           V
+	completedFormat ttycolors.Format
+	remainingFormat ttycolors.Format
 }
 
 var (
@@ -31,6 +34,7 @@ func NewLineBarDefinition[T, V any](s Self[T], total V) LineBarDefinition[T, V] 
 	return LineBarDefinition[T, V]{
 		ProgressDefinition: NewProgressDefinition[T](s),
 		total:              total,
+		completedFormat:    ttycolors.FmtReverse,
 	}
 }
 
@@ -65,6 +69,40 @@ func (d *LineBarDefinition[T, V]) IsResetOnFinished() bool {
 	return d.resetOnFinished
 }
 
+// SetCompletedFormat sets the output format for the part of the
+// progress line corresponding to the completed progress. The given
+// formats are composed (see ttycolors.New). The default is
+// ttycolors.FmtReverse. The format applies to all output formats
+// not set by the content of the line, for example by decorator formats.
+func (d *LineBarDefinition[T, V]) SetCompletedFormat(fmts ...ttycolors.FormatProvider) T {
+	d.completedFormat = ttycolors.New(fmts...)
+	return d.Self()
+}
+
+// GetCompletedFormat provides the output format for the completed part.
+func (d *LineBarDefinition[T, V]) GetCompletedFormat() ttycolors.Format {
+	return d.completedFormat
+}
+
+// SetRemainingFormat sets the output format for the part of the
+// progress line corresponding to the remaining progress. The given
+// formats are composed (see ttycolors.New). Without formats, the
+// remaining part is not formatted, which is the default.
+func (d *LineBarDefinition[T, V]) SetRemainingFormat(fmts ...ttycolors.FormatProvider) T {
+	if len(fmts) == 0 {
+		d.remainingFormat = nil
+	} else {
+		d.remainingFormat = ttycolors.New(fmts...)
+	}
+	return d.Self()
+}
+
+// GetRemainingFormat provides the output format for the remaining
+// part, or nil, if it is not formatted.
+func (d *LineBarDefinition[T, V]) GetRemainingFormat() ttycolors.Format {
+	return d.remainingFormat
+}
+
 func (d *LineBarDefinition[T, V]) SetPending(v string) T {
 	d.pending = v
 	return d.Self()
@@ -92,6 +130,8 @@ type LineBarSpecification[T, V any] interface {
 	ResetOnFinished(b ...bool) T
 	SetPending(m string) T
 	SetTotal(v V) T
+	SetCompletedFormat(fmts ...ttycolors.FormatProvider) T
+	SetRemainingFormat(fmts ...ttycolors.FormatProvider) T
 }
 
 type LineBarConfiguration[T any] interface {
@@ -99,4 +139,6 @@ type LineBarConfiguration[T any] interface {
 	IsResetOnFinished() bool
 	GetPending() string
 	GetTotal() T
+	GetCompletedFormat() ttycolors.Format
+	GetRemainingFormat() ttycolors.Format
 }

@@ -1,0 +1,6 @@
+config:
+  rows: 5
+  frameBox:
+    title: Line Bar Indicator
+  theme:
+    background: "#000000"
