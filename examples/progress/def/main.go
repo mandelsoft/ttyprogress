@@ -38,8 +38,10 @@ func main() {
 	run(p, bar2)
 	p.Close()
 
+	// --- begin wait ---
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	p.Wait(ctx)
+	// --- end wait ---
 
 }

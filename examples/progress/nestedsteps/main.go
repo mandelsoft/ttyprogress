@@ -9,6 +9,7 @@ import (
 	"github.com/mandelsoft/ttyprogress/synclog"
 )
 
+// --- begin step ---
 func Step(n string) ttyprogress.NestedStep {
 	return ttyprogress.NewNestedStep[ttyprogress.Bar](
 		n, ttyprogress.NewBar().SetTotal(100).
@@ -18,10 +19,13 @@ func Step(n string) ttyprogress.NestedStep {
 	)
 }
 
+// --- end step ---
+
 func main() {
 	synclog.LogToFile("local/lock.log")
 	p := ttyprogress.For(os.Stdout)
 
+	// --- begin bar ---
 	bar, _ := ttyprogress.NewNestedSteps(
 		Step("downloading"),
 		Step("unpacking"),
@@ -34,6 +38,7 @@ func main() {
 		PrependElapsed().
 		AppendCompleted().
 		Add(p)
+	// --- end bar ---
 
 	p.Close()
 

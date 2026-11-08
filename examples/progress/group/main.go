@@ -9,6 +9,7 @@ import (
 	"github.com/mandelsoft/ttyprogress"
 )
 
+// --- begin group ---
 func text(g ttyprogress.Group) {
 	for t := 0; t < 2; t++ {
 		text, _ := ttyprogress.NewTextSpinner().
@@ -49,3 +50,5 @@ func main() {
 	p.Close()
 	p.Wait(nil)
 }
+
+// --- end group ---

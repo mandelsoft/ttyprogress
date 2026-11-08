@@ -10,6 +10,7 @@ import (
 func main() {
 	p := ttyprogress.For(os.Stdout)
 
+	// --- begin bar ---
 	total := 10 * time.Second
 	bar, _ := ttyprogress.NewEstimated(total).
 		SetWidth(ttyprogress.ReserveTerminalSize(40)).
@@ -19,6 +20,7 @@ func main() {
 		AppendCompleted().
 		AppendElapsed().
 		Add(p)
+	// --- end bar ---
 	bar.Start()
 	p.Close()
 

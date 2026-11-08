@@ -10,10 +10,12 @@ import (
 func main() {
 	p := ttyprogress.For(os.Stdout)
 
+	// --- begin spinner ---
 	bar, _ := ttyprogress.NewScrollingSpinner("doing some calculations", 10).
 		SetDone("calculations done").
 		AppendElapsed().
 		Add(p)
+	// --- end spinner ---
 	bar.Start()
 	p.Close()
 

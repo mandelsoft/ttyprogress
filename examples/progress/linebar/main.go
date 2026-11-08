@@ -12,12 +12,14 @@ import (
 func main() {
 	p := ttyprogress.For(os.Stdout)
 
+	// --- begin bar ---
 	bar, _ := ttyprogress.NewLineBar().
 		SetTotal(500).
 		PrependMessage("Downloading...").
 		PrependElapsed().AppendCompleted().SetDecoratorFormat(ttycolors.FmtGreen).
 		AppendFunc(ttyprogress.Amount(units.Bytes(1024))).
 		Add(p)
+	// --- end bar ---
 
 	for i := 0; i <= 20; i++ {
 		bar.Set(i * 5 * 5)

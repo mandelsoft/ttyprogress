@@ -33,10 +33,12 @@ func text(g ttyprogress.Container) {
 
 func main() {
 	p := ttyprogress.For(os.Stdout)
+	// --- begin group ---
 	g, _ := ttyprogress.NewAnonymousGroup().
 		HideOnClose().
 		SetGap("- ").
 		SetFollowUpGap("  ").Add(p)
+	// --- end group ---
 	text(g)
 	g.Close()
 	p.Close()

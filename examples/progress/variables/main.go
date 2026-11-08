@@ -10,6 +10,7 @@ import (
 	"github.com/mandelsoft/ttyprogress/specs"
 )
 
+// --- begin main ---
 func main() {
 	p := ttyprogress.For(os.Stdout)
 
@@ -44,3 +45,5 @@ func main() {
 	p.Close()
 	p.Wait(nil)
 }
+
+// --- end main ---

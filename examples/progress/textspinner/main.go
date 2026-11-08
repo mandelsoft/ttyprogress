@@ -13,6 +13,7 @@ func main() {
 	p := ttyprogress.For(os.Stdout)
 
 	for s := 0; s < 3; s++ {
+		// --- begin spinner ---
 		bar, _ := ttyprogress.NewTextSpinner().
 			SetPredefined(5).
 			SetView(3).
@@ -20,6 +21,7 @@ func main() {
 			PrependFunc(ttyprogress.Message(fmt.Sprintf("working on task %d...", s+1))).
 			AppendElapsed().
 			Add(p)
+		// --- end spinner ---
 
 		go func() {
 			// starts automatically, with the first write

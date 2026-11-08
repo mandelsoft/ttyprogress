@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	// --- begin bar ---
 	p := ttyprogress.For(os.Stdout)
 	// Underline colors require an extended terminal feature, which cannot
 	// be detected and is therefore disabled by default. Without it, the
@@ -24,6 +25,7 @@ func main() {
 		AppendFunc(ttyprogress.Amount(units.Bytes(1024))).
 		SetCompletedFormat(ttycolors.FmtUnderline, ttycolors.FmtUnderlineIdColor(ansi.COLOR_ID_YELLOW)).
 		Add(p)
+	// --- end bar ---
 
 	for i := 0; i <= 20; i++ {
 		bar.Set(i * 5 * 5)

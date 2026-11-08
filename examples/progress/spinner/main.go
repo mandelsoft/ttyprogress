@@ -20,12 +20,14 @@ func main() {
 		ttycolors.New(ttycolors.FmtBgCyan, ttycolors.FmtBold),
 	}
 	for i, b := range bars {
+		// --- begin spinner ---
 		bar, _ := ttyprogress.NewSpinner().
 			SetPredefined(b).
 			SetSpeed(1).
 			SetColor(cols[i]).
 			PrependFunc(ttyprogress.Message(fmt.Sprintf("working on task %d ...", i+1))).
 			AppendElapsed().Add(p)
+		// --- end spinner ---
 		bar.Start()
 		go func() {
 			time.Sleep(time.Second * time.Duration(10+rand.Int()%20))
